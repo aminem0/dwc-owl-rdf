@@ -1,0 +1,287 @@
+@prefix ac: <http://rs.tdwg.org/ac/terms/> .
+@prefix bb: <https://www.bioboum.ca/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+@prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
+@prefix eco: <http://rs.tdwg.org/eco/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://www.bioboum.ca/identification/id-01> a dwc:Identification ;
+    dwc:identificationID "id_01" ;
+    dwc:materialEntityID "material_05" ;
+    dwc:vernacularName "cutiefly" ;
+    dwcdp:basedOn <https://www.bioboum.ca/material/material-05> .
+
+<https://www.bioboum.ca/identification/id-02> a dwc:Identification ;
+    dwc:identificationID "id_02" ;
+    dwc:materialEntityID "material_06" ;
+    dwc:vernacularName "combee" ;
+    dwcdp:basedOn <https://www.bioboum.ca/material/material-06> .
+
+<https://www.bioboum.ca/identification/id-03> a dwc:Identification ;
+    dwc:identificationID "id_03" ;
+    dwc:materialEntityID "material_02" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:basedOn <https://www.bioboum.ca/material/material-02> .
+
+<https://www.bioboum.ca/identification/id-04> a dwc:Identification ;
+    dwc:identificationID "id_04" ;
+    dwc:materialEntityID "material_03" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:basedOn <https://www.bioboum.ca/material/material-03> .
+
+<https://www.bioboum.ca/identification/id-05> a dwc:Identification ;
+    dwc:class "Insecta" ;
+    dwc:family "Pieridae" ;
+    dwc:genus "Aporia" ;
+    dwc:identificationID "id_05" ;
+    dwc:kingdom "Pokemonia" ;
+    dwc:materialEntityID "material_04" ;
+    dwc:order "Lepidoptera" ;
+    dwc:phylum "Arthropoda" ;
+    dwc:scientificName "Aporia humida" ;
+    dwc:specificEpithet "Aporia humida" ;
+    dwc:taxonRank "species" ;
+    dwc:vernacularName "butterfree" ;
+    dwcdp:basedOn <https://www.bioboum.ca/material/material-04> .
+
+<https://www.bioboum.ca/identification/id-06> a dwc:Identification ;
+    dwc:identificationID "id_06" ;
+    dwc:occurrenceID "occ_03" ;
+    dwc:vernacularName "pikachu" ;
+    dwcdp:basedOn <https://www.bioboum.ca/occurrence/occ-03> .
+
+<https://www.bioboum.ca/material_assertion/assertion-material-01> a dwc:Assertion ;
+    dwcdp:about <https://www.bioboum.ca/material/material-01> ;
+    dwcdp:assertionID "assertion_material_01" ;
+    dwcdp:assertionType "total wet weight" ;
+    dwcdp:assertionUnit "kg" ;
+    dwcdp:assertionValueNumeric 5.7 ;
+    dwcdp:materialEntityID "material_01" .
+
+<https://www.bioboum.ca/material_assertion/assertion-material-02> a dwc:Assertion ;
+    dwcdp:about <https://www.bioboum.ca/material/material-02> ;
+    dwcdp:assertionID "assertion_material_02" ;
+    dwcdp:assertionType "wet weight" ;
+    dwcdp:assertionUnit "kg" ;
+    dwcdp:assertionValueNumeric 28.0 ;
+    dwcdp:materialEntityID "material_02" .
+
+<https://www.bioboum.ca/material_assertion/assertion-material-03> a dwc:Assertion ;
+    dwcdp:about <https://www.bioboum.ca/material/material-03> ;
+    dwcdp:assertionID "assertion_material_03" ;
+    dwcdp:assertionType "wet weight" ;
+    dwcdp:assertionUnit "kg" ;
+    dwcdp:assertionValueNumeric 30.0 ;
+    dwcdp:materialEntityID "material_03" .
+
+<https://www.bioboum.ca/media/media-01> a ac:Media ;
+    dcterms:description "Photo of size-sorted specimens from the Viridian Forest survey: Combee (left) and Cutiefly (right)." ;
+    dcterms:title "Bulk sample Combee and Cutiefly" ;
+    dcterms:type "StillImage" ;
+    dwc:mediaID "media_01" ;
+    dwcdp:isMediaOf <https://www.bioboum.ca/material/material-01> .
+
+<https://www.bioboum.ca/media/media-02> a ac:Media ;
+    dcterms:description "Photo detail: one Combee individual on the left side of the bulk specimen sample." ;
+    dcterms:title "Combee (left) bulk sample" ;
+    dcterms:type "RegionOfInterest" ;
+    dwc:isPartOfMediaID "media_01" ;
+    dwc:mediaID "media_02" ;
+    dwcdp:isMediaOf <https://www.bioboum.ca/material/material-05> ;
+    dwcdp:isPartOf <https://www.bioboum.ca/material/media-01> .
+
+<https://www.bioboum.ca/media/media-03> a ac:Media ;
+    dcterms:description "Photo detail: one Cutiefly individual on the right side of the bulk specimen sample." ;
+    dcterms:title "Cutiefly (right) bulk sample" ;
+    dcterms:type "RegionOfInterest" ;
+    dwc:isPartOfMediaID "media_01" ;
+    dwc:mediaID "media_03" ;
+    dwcdp:isMediaOf <https://www.bioboum.ca/material/material-06> ;
+    dwcdp:isPartOf <https://www.bioboum.ca/material/media-01> .
+
+<https://www.bioboum.ca/occurrence/occ-06> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_06" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.bioboum.ca/occurrence/occ-07> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_07" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.bioboum.ca/location/event-01-loc> a dcterms:Location ;
+    dwc:decimalLatitude 4.5958 ;
+    dwc:decimalLongitude -74.0684 ;
+    dwc:locality "Viridian forest" .
+
+<https://www.bioboum.ca/material/material-04> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:evidenceForOccurrenceID "occ_02" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_04" ;
+    dwc:vernacularName "butterfree" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-02> .
+
+<https://www.bioboum.ca/occurrence/occ-02> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_02" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "butterfree" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.bioboum.ca/occurrence/occ-03> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_03" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:vernacularName "pikachu" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> .
+
+<https://www.bioboum.ca/occurrence/occ-04> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_04" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "combee" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.bioboum.ca/occurrence/occ-05> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_05" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "1" ;
+    dwc:organismQuantityType "individual" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "cutiefly" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.bioboum.ca/survey/survey-01> a eco:Survey ;
+    dwc:eventDurationUnit "minutes" ;
+    dwc:eventID "event_01" ;
+    dwc:identifiedBy "Ash Ketchum" ;
+    dwc:identifiedByID "https://www.wikidata.org/entity/Q308950"^^xsd:anyURI ;
+    dwc:protocolNames "netSweep" ;
+    dwc:samplingPerformedBy "Ash Ketchum" ;
+    dwc:samplingPerformedByID "https://www.wikidata.org/entity/Q308950"^^xsd:anyURI ;
+    dwc:surveyID "survey_01" ;
+    dwc:verbatimTargetScope "flying bug-type pokémon" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:identificationsMadeBy <https://www.wikidata.org/entity/Q308950> ;
+    dwcdp:samplingPerformedBy <https://www.wikidata.org/entity/Q308950> ;
+    eco:eventDurationValue 15.0 ;
+    eco:siteCount 1 .
+
+<https://www.bioboum.ca/material/material-02> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:evidenceForOccurrenceID "occ_01" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_02" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-01> .
+
+<https://www.bioboum.ca/material/material-03> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:evidenceForOccurrenceID "occ_01" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_03" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-01> .
+
+<https://www.bioboum.ca/material/material-05> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:evidenceForOccurrenceID "occ_04" ;
+    dwc:isPartOfMaterialEntityID "material_01" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_05" ;
+    dwc:vernacularName "combee" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-04> ;
+    dwcdp:isPartOf <https://www.bioboum.ca/material/material-01> .
+
+<https://www.bioboum.ca/material/material-06> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:evidenceForOccurrenceID "occ_05" ;
+    dwc:isPartOfMaterialEntityID "material_01" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_06" ;
+    dwc:vernacularName "cutiefly" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-05> ;
+    dwcdp:isPartOf <https://www.bioboum.ca/material/material-01> .
+
+<https://www.bioboum.ca/material/media-01> a ac:Media .
+
+<https://www.bioboum.ca/occurrence/occ-01> a dwc:Occurrence ;
+    dwc:eventID "event_01" ;
+    dwc:occurrenceID "occ_01" ;
+    dwc:occurrenceStatus "detected" ;
+    dwc:organismQuantity "8" ;
+    dwc:organismQuantityType "individuals" ;
+    dwc:surveyTargetID "target_01" ;
+    dwc:vernacularName "beedrill" ;
+    dwcdp:happenedDuring <https://www.bioboum.ca/event/event-01> ;
+    dwcdp:satisfied <https://www.bioboum.ca/survey_target/target-01> .
+
+<https://www.wikidata.org/entity/Q308950> a dcterms:Agent ;
+    dcterms:title "Ash Ketchum" ;
+    dwc:agentID "https://www.wikidata.org/entity/Q308950"^^xsd:anyURI ;
+    dwc:agentType "person" .
+
+<https://www.bioboum.ca/material/material-01> a dwc:MaterialEntity ;
+    dwc:eventID "event_01" ;
+    dwc:materialCategory "living" ;
+    dwc:materialEntityID "material_01" ;
+    dwc:materialEntityType "size sorted bulk specimens" ;
+    dwcdp:collectedDuring <https://www.bioboum.ca/event/event-01> .
+
+<https://www.bioboum.ca/survey_target/target-01> a eco:SurveyTarget ;
+    dwcdp:targetFor <https://www.bioboum.ca/survey/survey-01> ;
+    bb:hasDefinition [ dwcdp:surveyID "survey_01" ;
+            dwcdp:surveyTargetID "target_01" ;
+            eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "taxon" ;
+            eco:surveyTargetValue "Arthropoda" ],
+        [ dwcdp:surveyID "survey_01" ;
+            dwcdp:surveyTargetID "target_01" ;
+            eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "universe" ;
+            eco:surveyTargetValue "Pokémon" ],
+        [ dwcdp:surveyID "survey_01" ;
+            dwcdp:surveyTargetID "target_01" ;
+            eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "able to fly" ;
+            eco:surveyTargetValue "true" ] .
+
+<https://www.bioboum.ca/event/event-01> a dwc:Event ;
+    dcterms:spatial <https://www.bioboum.ca/location/event-01-loc> ;
+    dwc:eventDate "2025-10-17" ;
+    dwc:eventID "event_01" .
+
