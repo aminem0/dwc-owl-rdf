@@ -18,3 +18,7 @@ The Viridian forest survey is exceptionally good, because it is small enough to 
 
 As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of as complex a story the researcher needs. In addition, the ontology in DWCOWL allows for complex linking and possibly querying of these entities, maximizing reuse potential.
 
+Whereas the Viridian forest survey dataset contained `252` triples, the Broke-West fish dataset contains `173 213` triples. Despite this, the same underlying logic can be applied to obtain a directional graph as well.
+
+![Labeled graph of the Broke-West fish dataset](images/broke-directed-graph.png)
+
