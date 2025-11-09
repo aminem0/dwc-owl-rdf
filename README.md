@@ -1,6 +1,6 @@
 # DWC-OWL-RDF
 
-A trial to use terms from [an ontology that is based on Darwin Core terms](https://github.com/aminem0/dwc-owl) in order to semantically describe biodiversity datasets.
+An effort to use terms from [an ontology that is based on Darwin Core terms](https://github.com/aminem0/dwc-owl) in order to semantically describe biodiversity datasets.
 
 Given that this project is developped in conjunction with the ontology, any modifications to the ontology will be reflected in these examples.
 
@@ -16,9 +16,9 @@ The Viridian forest survey is exceptionally good, because it is small enough to 
 
 ![Labeled graph of the Viridian forest survey](images/viridian-labeled-graph.png)
 
-As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of as complex a story the researcher needs. In addition, the ontology in DWCOWL allows for complex linking and possibly querying of these entities, maximizing reuse potential.
+As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of how the data are meant to be understood. To that end, the ontology in DWC-OWL allows for complex linking and possibly querying of these entities, maximizing reuse potential.
 
-Whereas the Viridian forest survey dataset contained `251` triples, the Broke-West fish dataset contains `173 062` triples. Despite this, the same underlying logic can be applied to obtain a directional graph as well.
+Whereas the Viridian forest survey dataset contained `251` triples, the Broke-West fish dataset contains `173 062` triples and considers more classes. Despite this, the same underlying logic can be applied to obtain a directional graph as well, which faithfully describes the dataset.
 
 ![Labeled graph of the Broke-West fish dataset](images/broke-directed-graph.png)
 
