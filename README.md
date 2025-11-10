@@ -20,5 +20,8 @@ As can be seen, the graph reads like a book, and tells exactly the story researc
 
 Whereas the Viridian forest survey dataset contained `251` triples, the Broke-West fish dataset contains `173 062` triples and considers more classes. Despite this, the same underlying logic can be applied to obtain a directional graph as well, which faithfully describes the dataset.
 
-![Labeled graph of the Broke-West fish dataset](images/broke-directed-graph.png)
+![Directed graph of the Broke-West fish dataset](images/broke-directed-graph.png)
 
+The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `266 130` triples.
+
+![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
