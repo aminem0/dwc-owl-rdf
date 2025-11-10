@@ -6,10 +6,10 @@ Given that this project is developped in conjunction with the ontology, any modi
 
 ## Test datasets
 
-- Broke-West-Fish dataset: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
-- Insektmobilen dataset: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
-- Orford raccoon dataset: The dataset is a two-year mark–recapture monitoring of raccoons (*Procyon lotor*) in Orford, Québec, including morphometric data measurements taken on each individual. An Excel spreadsheet was provided by Pr. Fanie Pelletier of Université de Sherbrooke. The data were standardized and mapped to DwCDP terms.
-- Viridian forest survey: The dataset consists of a forest survey for bug and flying Pokémon done by Ash Ketchum in Viridian forest. The Darwin Core DataPackage was obtained [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey).
+- **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
+- **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
+- **Orford raccoon captures**: The dataset is a two-year mark–recapture monitoring of raccoons (*Procyon lotor*) in Orford, Québec, including morphometric data measurements taken on each individual. An Excel spreadsheet was provided by Pr. Fanie Pelletier of Université de Sherbrooke. The data were standardized and mapped to DwCDP terms and then to the DWC-OWL ontology.
+- **Viridian forest survey**: The dataset consists of a forest survey for bug and flying Pokémon done by Ash Ketchum in Viridian forest. The Darwin Core DataPackage was obtained [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey).
 
 ## Importance of the ontology
 
