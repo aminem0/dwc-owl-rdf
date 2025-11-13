@@ -38,3 +38,7 @@ The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF transla
 The crop-flower-visit dataset, when expressed as a direct translation of the star-schema based Darwin Core Archive, produced isolated small islands of entities. In each case, there was a central dwc:Event, from which several dwc:MaterialEntities were collected and dwc:Identifications were done on these preserved individuals. Accordingly, these dwc:Identifications form the basis of evidence for the dwc:Occurrence of the taxa at said site. This is what gives rise to the flower-like pattern seen in the graph. To connect these islands of entities, and to do so in a meaningful manner, a dwc:Protocol instance was created and pointed to the original paper of the study.
 
 ![Directed graph of the crop-flower-visit dataset](images/crop-directed-graph.png)
+
+In the case of the turtle-remote-sensing dataset, every dwc:Event is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual dwc:Organism, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumlate, study and share this data, such as [MoveBON](https://geobon.org/move-bon/).
+
+![Directed graph of the turtle-remote-sensing dataset](images/turtle-directed-graph.png)
