@@ -39,6 +39,14 @@ The crop-flower-visit dataset, when expressed as a direct translation of the sta
 
 ![Directed graph of the crop-flower-visit dataset](images/crop-directed-graph.png)
 
-In the case of the turtle-remote-sensing dataset, every dwc:Event is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual dwc:Organism, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumlate, study and share this data, such as [MoveBON](https://geobon.org/move-bon/).
+In the case of the turtle-remote-sensing dataset, every dwc:Event is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual dwc:Organism, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumulate, study and share this data, such as [Move BON](https://geobon.org/move-bon/).
 
 ![Directed graph of the turtle-remote-sensing dataset](images/turtle-directed-graph.png)
+
+## Value of revisiting datasets
+
+The crop-flower-visit dataset was originally published as an occurrence dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, dwc:Assertions about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of dwc:OrganismInteraction. However, the entirety of this information is provided as free-form text in the data property such as dwc:OccurrenceRemarks.
+
+![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
+
+Extraction of this information and updating of the dataset using DwCDP terms and the DWC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on male Japanese persimmon trees (*Diospyros kaki*). Before, this would have required laborious regexing of the text. Consequently, the use of DwCDP terms and the DWC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
