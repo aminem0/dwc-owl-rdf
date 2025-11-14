@@ -7,7 +7,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 ## Test datasets
 
 - **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
-- **Crop flower visit**: A dataset of visits of hymenopteran pollinators to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
+- **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
 - **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
 - **NMNH paleobiology specimen**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
 - **Turtle movement dataset**: A dataset of geographically tracked sea turtles. The dataset was downloaded in pieces (one .csv file per individual) from the Movebank [through the Tracking Data Map](https://www.movebank.org/cms/webapp/map).
@@ -45,7 +45,7 @@ In the case of the turtle-remote-sensing dataset, every dwc:Event is a signal fr
 
 ## Value of revisiting datasets
 
-The crop-flower-visit dataset was originally published as an occurrence dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, dwc:Assertions about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of dwc:OrganismInteraction. However, the entirety of this information is provided as free-form text in the data property such as dwc:OccurrenceRemarks.
+The crop-flower-visit dataset was originally published as an sampling event dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, dwc:Assertions about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of dwc:OrganismInteraction. However, the entirety of this information is provided as free-form text in the data property such as dwc:OccurrenceRemarks.
 
 ![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
 
