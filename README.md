@@ -53,7 +53,25 @@ Extraction of this information and updating of the dataset using DwCDP terms and
 
 ## Smarter querying
 
-Furthermore, suppose we had the crop dataset stored in a triplestore and that it was exposed through a SPARQL endpoint. The following SPARQL query allows for extraction of the desired data:
+Furthermore, suppose we had the crop dataset stored in a triplestore and that it was exposed through a SPARQL endpoint. The following SPARQL query allows for extraction of the desired data (i.e. occurrences of insects but only on male Japanese persimmon trees):
+
+```sparql
+PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+SELECT ?occPol ?occSci WHERE {
+  ?occPol a dwc:Occurrence ;
+          dwc:scientificName ?occSci ;
+          dwc:occurrenceRemarks ?occRem .
+
+  FILTER regex(?occRem, "Diospyros kaki")
+  FILTER regex(?occRem, "\\bmale\\b", "i")
+}
+```
+
+The query is a simple SPARQL query with regex-based pattern searching othe `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄花` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄花` or hiragana `ゆうか`? Would he consider the literal term `male` or a symbol such as `♂`?
+
+On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose and consists of:
 
 ```sparql
 PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
@@ -69,5 +87,15 @@ SELECT ?occPol ?occSci WHERE {
   
   ?occPlant a dwc:Occurrence ;
             dwc:scientificName "Diospyros kaki" .
+  
+  ?plantAss a dwc:Assertion ;
+            dwcdp:about ?occPlant ;
+            dwc:assertionValueIRI <http://purl.obolibrary.org/obo/PATO_0000384> .
 }
 ```
+
+Where [http://purl.obolibrary.org/obo/PATO_0000384] is an IRI that corresponds to a specific PATO (Phenotype And Trait Ontology) term, in this case `male`. Consideration of a persistent IRI safegards against the previously mentionned issues, as it is a language-independent way to refer to the same concept.
+
+Furthermore, the regex-based query has a glaring problem that can potentially slips by unnoticed. The pattern `\\bmale\\b` will look for the word `male` (anywhere in the comments). Therefore, the WRONG results might be returned for reasons other than what the researcher intended. For example, the following dwc:occurrenceRemarks will still be a match: `occurrence of a male Lasioglossus on a female Diosporus kaki`. This is because the regex just blindly looks for the string `male` in the string, regardless of whether it relates to the pollinator or to the plant. In contrast, the semantically-aware query will successfully retrieve the desired data, because it has connected the data in a semantically meaningful way.
+
+This illustrates an important point: while RDF provides a flexible framework for representing data, it alone is not enough to significantly advance data-sharing and reuse. Only when RDF is backed with a robust ontological foundation that it can enables truly meaningful, semantically precise data-sharing and reuse.
