@@ -50,3 +50,24 @@ The crop-flower-visit dataset was originally published as an sampling event data
 ![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
 
 Extraction of this information and updating of the dataset using DwCDP terms and the DWC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on male Japanese persimmon trees (*Diospyros kaki*). Before, this would have required laborious regexing of the text. Consequently, the use of DwCDP terms and the DWC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
+
+## Smarter querying
+
+Furthermore, suppose we had the crop dataset stored in a triplestore and that it was exposed through a SPARQL endpoint. The following SPARQL query allows for extraction of the desired data:
+
+```sparql
+PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+SELECT ?occPol ?occSci WHERE {
+  ?occPol a dwc:Occurrence ;
+          dwc:scientificName ?occSci .
+  
+  ?inter a dwc:OrganismInteraction ;
+         dwcdp:interactionBy ?occPol ;
+         dwcdp:interactionWith ?occPlant .
+  
+  ?occPlant a dwc:Occurrence ;
+            dwc:scientificName "Diospyros kaki" .
+}
+```
