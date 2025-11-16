@@ -32,6 +32,10 @@ The Insektmobilen dataset produced an extremely high number of triples, due to i
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
 
+For the AMI datasets, none of dcterms:Agents were human, being either instruments or AI models. However, they allowed separation of the data into well-defined groups. Indeed, graphical representation of a subset produced showed that all captures done by Luna were on the left and those by Mothra were on the right. Both AI models used for image recognition and identification are in the center of the graph.
+
+![Directed graph of the AMI dataset](images/ami-directed-graph.png)
+
 The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF translation of the relational tables in the DataPackage, produced a disconnected graph. The main graph is evident, with around it several subgraphs or even single nodes. Note that this is not an issue for RDF, as these resources are still queriable. Nonetheless, some additional relating of data, such as relating dwc:Identification to the dwc:MaterialEntity on which they are based would connect the isolated subgraphs to the main graph.
 
 ![Directed graph of the NMNH paleobiology dataset](images/nmnh-directed-graph.png)
