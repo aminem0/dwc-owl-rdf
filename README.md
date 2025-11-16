@@ -9,7 +9,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 - **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
 - **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
 - **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
-- **Luna & Mothra AMI traps**: A dataset of AI identified moths from an autonomous moth or insect traps set up in Vermont. Identifications were performed using AI models trained to recognize lepidoptera species from images. The data were obtained by connecting to the demo API in [the official webpage](https://demo.antenna.insectai.org/projects).
+- **Luna & Mothra AMI traps**: A dataset of AI identified moths from an autonomous moth or insect traps set up in Vermont. Identifications were performed using AI models trained to recognize lepidoptera species from images. The data were obtained by connecting to the demo API in [of the Antenna webpage](https://demo.antenna.insectai.org/projects).
 - **NMNH paleobiology specimen**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
 - **Turtle movement dataset**: A dataset of geographically tracked sea turtles. The dataset was downloaded in pieces (one .csv file per individual) from the Movebank [through the Tracking Data Map](https://www.movebank.org/cms/webapp/map).
 - **Viridian forest survey**: The dataset consists of a forest survey for bug and flying Pokémon done by Ash Ketchum in Viridian forest. The Darwin Core DataPackage was obtained [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey).
@@ -32,7 +32,7 @@ The Insektmobilen dataset produced an extremely high number of triples, due to i
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
 
-For the AMI datasets, none of dcterms:Agents were human, being either instruments or AI models. However, they allowed separation of the data into well-defined groups. Indeed, graphical representation of a subset produced showed that all captures done by Luna were on the left and those by Mothra were on the right. Both AI models used for image recognition and identification are in the center of the graph.
+For the AMI dataset, none of dcterms:Agents were human, being either instruments or AI models. However, they allowed separation of the data into well-defined groups. Indeed, graphical representation of a subset produced showed that all captures done by Luna were on the left and those by Mothra were on the right. Both AI models used for image recognition and identification are in the center of the graph.
 
 ![Directed graph of the AMI dataset](images/ami-directed-graph.png)
 
