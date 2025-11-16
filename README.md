@@ -28,7 +28,7 @@ Whereas the Viridian forest survey dataset contained `251` triples, the Broke-We
 
 ![Directed graph of the Broke-West fish dataset](images/broke-directed-graph.png)
 
-The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `266 130` triples.
+The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of dwc:Identifications correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
 
