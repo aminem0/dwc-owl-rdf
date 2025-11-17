@@ -28,7 +28,7 @@ Whereas the Viridian forest survey dataset contained `251` triples, the Broke-We
 
 ![Directed graph of the Broke-West fish dataset](images/broke-directed-graph.png)
 
-The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of dwc:Identifications correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
+The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of `dwc:Identifications` correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
 
@@ -36,21 +36,21 @@ For the AMI dataset, none of dcterms:Agents were human, being either instruments
 
 ![Directed graph of the AMI dataset](images/ami-directed-graph.png)
 
-The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF translation of the relational tables in the DataPackage, produced a disconnected graph. The main graph is evident, with around it several subgraphs or even single nodes. Note that this is not an issue for RDF, as these resources are still queryable. Nonetheless, some additional relating of data, such as relating dwc:Identification to the dwc:MaterialEntity on which they are based would connect the isolated subgraphs to the main graph.
+The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF translation of the relational tables in the DataPackage, produced a disconnected graph. The main graph is evident, with around it several subgraphs or even single nodes. Note that this is not an issue for RDF, as these resources are still queryable. Nonetheless, some additional relating of data, such as relating `dwc:Identification` to the `dwc:MaterialEntity` on which they are based would connect the isolated subgraphs to the main graph.
 
 ![Directed graph of the NMNH paleobiology dataset](images/nmnh-directed-graph.png)
 
-The crop-flower-visit dataset, when expressed as a direct translation of the star-schema based Darwin Core Archive, produced isolated small islands of entities. In each case, there was a central dwc:Event, from which several dwc:MaterialEntities were collected and dwc:Identifications were done on these preserved individuals. Accordingly, these dwc:Identifications form the basis of evidence for the dwc:Occurrence of the taxa at said site. This is what gives rise to the flower-like pattern seen in the graph. To connect these islands of entities, and to do so in a meaningful manner, a dwc:Protocol instance was created and pointed to the original paper of the study.
+The crop-flower-visit dataset, when expressed as a direct translation of the star-schema based Darwin Core Archive, produced isolated small islands of entities. In each case, there was a central `dwc:Event`, from which several `dwc:MaterialEntities` were collected and `dwc:Identifications` were done on these preserved individuals. Accordingly, these dwc:Identifications form the basis of evidence for the dwc:Occurrence of the taxa at said site. This is what gives rise to the flower-like pattern seen in the graph. To connect these islands of entities, and to do so in a meaningful manner, a dwc:Protocol instance was created and pointed to the original paper of the study.
 
 ![Directed graph of the crop-flower-visit dataset](images/crop-directed-graph.png)
 
-In the case of the turtle-remote-sensing dataset, every dwc:Event is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual dwc:Organism, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumulate, study and share this data, such as [Move BON](https://geobon.org/move-bon/).
+In the case of the turtle-remote-sensing dataset, every `dwc:Event` is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual `dwc:Organism`, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumulate, study and share this data, such as [Move BON](https://geobon.org/move-bon/).
 
 ![Directed graph of the turtle-remote-sensing dataset](images/turtle-directed-graph.png)
 
 ## Value of revisiting datasets
 
-The crop-flower-visit dataset was originally published as an sampling event dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, dwc:Assertions about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of dwc:OrganismInteraction. However, the entirety of this information is provided as free-form text in the data property such as dwc:OccurrenceRemarks.
+The crop-flower-visit dataset was originally published as an sampling event dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, `dwc:Assertions` about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of `dwc:OrganismInteraction`. However, the entirety of this information is provided as free-form text in the data property such as `dwc:OccurrenceRemarks`.
 
 ![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
 
@@ -74,9 +74,9 @@ SELECT ?occPol ?occSci WHERE {
 }
 ```
 
-The query is a simple SPARQL query with regex-based pattern searching othe `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄花` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄花` or hiragana `ゆうか`? Would he consider the literal term `male` or a symbol such as `♂`?
+The query is a simple SPARQL query with regex-based pattern searching of the `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄花` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄花` or hiragana `ゆうか`? Would he consider the literal term `male` or a symbol such as `♂`?
 
-On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose and consists of:
+On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose, but is much more concise and consists of:
 
 ```sparql
 PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>

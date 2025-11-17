@@ -75,13 +75,6 @@
     dwcdp:assertionValueNumeric 30.0 ;
     dwcdp:materialEntityID "material_03" .
 
-<https://www.bioboum.ca/media/media-01> a ac:Media ;
-    dcterms:description "Photo of size-sorted specimens from the Viridian Forest survey: Combee (left) and Cutiefly (right)." ;
-    dcterms:title "Bulk sample Combee and Cutiefly" ;
-    dcterms:type "StillImage" ;
-    dwc:mediaID "media_01" ;
-    dwcdp:isMediaOf <https://www.bioboum.ca/material/material-01> .
-
 <https://www.bioboum.ca/media/media-02> a ac:Media ;
     dcterms:description "Photo detail: one Combee individual on the left side of the bulk specimen sample." ;
     dcterms:title "Combee (left) bulk sample" ;
@@ -89,7 +82,7 @@
     dwc:isPartOfMediaID "media_01" ;
     dwc:mediaID "media_02" ;
     dwcdp:isMediaOf <https://www.bioboum.ca/material/material-05> ;
-    dwcdp:isPartOf <https://www.bioboum.ca/material/media-01> .
+    dwcdp:isPartOf <https://www.bioboum.ca/media/media-01> .
 
 <https://www.bioboum.ca/media/media-03> a ac:Media ;
     dcterms:description "Photo detail: one Cutiefly individual on the right side of the bulk specimen sample." ;
@@ -98,7 +91,7 @@
     dwc:isPartOfMediaID "media_01" ;
     dwc:mediaID "media_03" ;
     dwcdp:isMediaOf <https://www.bioboum.ca/material/material-06> ;
-    dwcdp:isPartOf <https://www.bioboum.ca/material/media-01> .
+    dwcdp:isPartOf <https://www.bioboum.ca/media/media-01> .
 
 <https://www.bioboum.ca/occurrence/occ-06> a dwc:Occurrence ;
     dwc:eventID "event_01" ;
@@ -234,7 +227,12 @@
     dwcdp:evidenceFor <https://www.bioboum.ca/occurrence/occ-05> ;
     dwcdp:isPartOf <https://www.bioboum.ca/material/material-01> .
 
-<https://www.bioboum.ca/material/media-01> a ac:Media .
+<https://www.bioboum.ca/media/media-01> a ac:Media ;
+    dcterms:description "Photo of size-sorted specimens from the Viridian Forest survey: Combee (left) and Cutiefly (right)." ;
+    dcterms:title "Bulk sample Combee and Cutiefly" ;
+    dcterms:type "StillImage" ;
+    dwc:mediaID "media_01" ;
+    dwcdp:isMediaOf <https://www.bioboum.ca/material/material-01> .
 
 <https://www.bioboum.ca/occurrence/occ-01> a dwc:Occurrence ;
     dwc:eventID "event_01" ;
@@ -265,14 +263,14 @@
             dwcdp:surveyTargetID "target_01" ;
             eco:includeOrExclude "include" ;
             eco:isSurveyTargetFullyReported true ;
-            eco:surveyTargetType "taxon" ;
-            eco:surveyTargetValue "Arthropoda" ],
+            eco:surveyTargetType "universe" ;
+            eco:surveyTargetValue "Pokémon" ],
         [ dwcdp:surveyID "survey_01" ;
             dwcdp:surveyTargetID "target_01" ;
             eco:includeOrExclude "include" ;
             eco:isSurveyTargetFullyReported true ;
-            eco:surveyTargetType "universe" ;
-            eco:surveyTargetValue "Pokémon" ],
+            eco:surveyTargetType "taxon" ;
+            eco:surveyTargetValue "Arthropoda" ],
         [ dwcdp:surveyID "survey_01" ;
             dwcdp:surveyTargetID "target_01" ;
             eco:includeOrExclude "include" ;
