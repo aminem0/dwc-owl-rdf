@@ -9,8 +9,9 @@ Given that this project is developped in conjunction with the ontology, any modi
 - **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
 - **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
 - **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
+- **Lanternfish gut metabarcoding**: A DNA metabarcoding analysis of lanternfish gut content. The dataset, as a Darwin Core Archive with a DNA derived extension was downloaded [from the marine CSIRO IPT website](https://www.marine.csiro.au/ipt/resource?r=in2019_v03_edna_nanopore).
 - **Luna & Mothra AMI traps**: A dataset of AI identified moths from an autonomous moth or insect traps set up in Vermont. Identifications were performed using AI models trained to recognize lepidoptera species from images. The data were obtained by querying the demo API [of the Antenna webpage](https://demo.antenna.insectai.org/projects/3/summary).
-- **NMNH paleobiology specimen**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
+- **NMNH paleobiology specimen**: The Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
 - **Turtle movement dataset**: A dataset of geographically tracked sea turtles. The dataset was downloaded in pieces (one .csv file per individual) from the Movebank [through the Tracking Data Map](https://www.movebank.org/cms/webapp/map).
 - **Viridian forest survey**: The dataset consists of a forest survey for bug and flying Pokémon done by Ash Ketchum in Viridian forest. The Darwin Core DataPackage was obtained [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey).
 
@@ -31,6 +32,10 @@ Whereas the Viridian forest survey dataset contained `251` triples, the Broke-We
 The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of `dwc:Identifications` correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
+
+For the lanternfish dataset, the entire DNA-derived dataset table was remapped onto Darwin Core DataPackage terms and needed the newly-defined classes of `dwc:NucleotideAnalysis`, `dwc:NucleotideSequence` and `dwc:MolecularProtocol`. Graphical representation of the dataset showed  of a subset produced showed that the data group relating to each fish, which follows the sampling program.
+
+![Directed graph of the lanternfish dataset](images/lanternfish-directed-graph.png)
 
 For the AMI dataset, none of dcterms:Agents were human, being either instruments or AI models. However, they allowed separation of the data into well-defined groups. Indeed, graphical representation of a subset produced showed that all captures done by Luna were on the left and those by Mothra were on the right. Both AI models used for image recognition and identification are in the center of the graph.
 
