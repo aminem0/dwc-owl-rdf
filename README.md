@@ -6,6 +6,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 
 ## Test datasets
 
+- **Aulavik lemming nests**: A dataset about yearly visits to 10 plots in Aulavik national park where lemming nests were counted. The data, as a csv file was downloaded from the [Government of Canada website](https://open.canada.ca/data/en/dataset/23694c59-ceec-4042-9e23-370b82e792a2).
 - **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
 - **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
 - **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
@@ -52,6 +53,10 @@ The crop-flower-visit dataset, when expressed as a direct translation of the sta
 In the case of the turtle-remote-sensing dataset, every `dwc:Event` is a signal from the radio transmitter. Each of these represent a geolocalized occurrence of a particular individual `dwc:Organism`, whose path can be followed across space and time. This type of data will become particularly important, especially when considering networks that accumulate, study and share this data, such as [Move BON](https://geobon.org/move-bon/).
 
 ![Directed graph of the turtle-remote-sensing dataset](images/turtle-directed-graph.png)
+
+In the case of the lemming nests dataset, consideration of a `dcterms:Location` entity was crucial, as it was the element tying all the yearly visits to the same plot. The data were modeled with a yearly count of nests being a `dwc:Event` and the nests themselves being `dwc:MaterialEntity` collected during said event. On that note, I would possibly like to consider an additional subproperty of `dwcdp:collectedDuring` to relate `dwc:MaterialEntities` to `dwc:Events`, possibly something like `dwcdp:notedDuring`, of which the former being a subproperty of the latter, indicating that the material entity was not only noted, but actually collected. If this material entity is present, then its instance is created and it becomes support for a `dwc:Occurrence` of lemmings on the parcel. The taxa considered here is lemmings, but such yearly visits are also considered for birds.
+
+![Directed graph of the aulavik-lemming-nests dataset](images/aulavik-directed-graph.png)
 
 ## Value of revisiting datasets
 
