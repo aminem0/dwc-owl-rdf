@@ -11,7 +11,8 @@ Given that this project is developped in conjunction with the ontology, any modi
 - **Colombia bird banding**: A dataset of bird occurrences between 2018 and 2023. Birds were captured with mist nets, had various attributes measured and were banded before being released. The dataset, as a Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/9407c83f-8690-4965-b4fb-48e8911d9430).
 - **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
 - **Insektmobilen**: The files were obtained from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data). The data were arranged so as to be csv files with utf-8 encoding as if they were in a DataPackage file. Also, some additional classes were considered, such as dwc:Agent and dwc:UsagePolicy.
-- **Joseph F. Rock herbarium**: A rescued orphaned dataset of the partially digitized herbarium collection of the Joseph F. Rock herbarium in Mānoa, Hawaiʻi. The dataset, as an occurrence Darwin Core Archive with a multimedia extension was downloaded [from the GBIF website](https://www.gbif.org/dataset/96beb7d8-f762-11e1-a439-00145eb45e9a). **NOTE**: The endpoint given appears to be dead. To download the dataset, you need to have an account and request the download to receive a working link by mail.
+- **Joseph F. Rock herbarium**: A rescued orphaned dataset of the partially digitized herbarium collection of the Joseph F. Rock herbarium in Mānoa, Hawaiʻi. The dataset, as an occurrence Darwin Core Archive with a multimedia extension was downloaded [from the GBIF website](https://www.gbif.org/dataset/96beb7d8-f762-11e1-a439-00145eb45e9a).
+**NOTE**: The endpoint given appears to be dead. To download the dataset, you need to have an account and request the download to receive a working link by mail.
 - **Lanternfish gut metabarcoding**: A DNA metabarcoding analysis of lanternfish gut content. The dataset, as a Darwin Core Archive with a DNA derived extension was downloaded [from the marine CSIRO IPT website](https://www.marine.csiro.au/ipt/resource?r=in2019_v03_edna_nanopore).
 - **Luna & Mothra AMI traps**: A dataset of AI identified moths from an autonomous moth or insect traps set up in Vermont. Identifications were performed using AI models trained to recognize lepidoptera species from images. The data were obtained by querying [the demo API of the Antenna webpage](https://demo.antenna.insectai.org/projects/3/summary).
 - **NMNH paleobiology specimen**: The Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
@@ -25,6 +26,8 @@ The Viridian forest survey is exceptionally good, because it is small enough to 
 ![Labeled graph of the Viridian forest survey](images/viridian-labeled-graph.png)
 
 As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of how the data are meant to be understood. To that end, the ontology in DWC-OWL allows for complex linking and eventually querying of these entities, maximizing reuse potential.
+
+In the following section, each dataset is accompanied by a brief description of its structure, the modelling choices used to represent it in RDF, as well as a summary discussion of what worked well (and what did not). This work also serves as a series of real-world test cases against which the ontology can be evaluated and refined.
 
 ## Real-world datasets
 
@@ -75,6 +78,17 @@ In the case of the turtle-remote-sensing dataset, every `dwc:Event` is a signal 
 In the case of the lemming nests dataset, consideration of a `dcterms:Location` entity was crucial, as it was the element tying all the yearly visits to the same plot. The data were modeled with a yearly count of nests being a `dwc:Event` and the nests themselves being `dwc:MaterialEntity` collected during said event. On that note, I would possibly like to consider an additional subproperty of `dwcdp:collectedDuring` to relate `dwc:MaterialEntities` to `dwc:Events`, possibly something like `dwcdp:notedDuring`, of which the former being a subproperty of the latter, indicating that the material entity was not only noted, but actually collected. If this material entity is present, then its instance is created and it becomes support for a `dwc:Occurrence` of lemmings on the parcel. The taxa considered here is lemmings, but such yearly visits are also considered for birds.
 
 ![Directed graph of the aulavik-lemming-nests dataset](images/aulavik-directed-graph.png)
+
+### Joseph Rock herbarium
+
+Both [the dead GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca/HAW_DwC-A.zip) and [the dead alternative identifier link](https://serv.biokic.asu.edu/pacific/portal/collections/misc/collprofiles.php?collid=1). The collection's [link on iDigBio](https://portal.idigbio.org/portal/recordsets/959c0dc4-fcf3-477e-af63-c00a005dbc0a) shows a collection with a differing amount of occurrences. Likewise, visiting [the University of Hawaiʻi at Mānoa webpage](https://manoa.hawaii.edu/herbarium/) gives no link to visit the digitized collection. Consequently, there seems to be no direct way to obtain the dataset than through the method described above.
+
+### Colombia bird ring
+
+The dataset is different than others for the following reasons:
+
+1. It is written entirely in Spanish, whereas the others were written in English (even the crop flower visit, that was conducted in Japan). This provides a good test case of how to use language tags in RDF for biodiversity datasets.
+2. It contains a `permit.txt` extension. This extension is a recognized extension, [the GGBN permit extension](https://rs.gbif.org/extension/ggbn/permit_2022-08-08.xml). However, the use is quite different than what is defined in the extension schema. Nonetheless, it will offer an example of how permit information can be supplied in biodiversity datasets. This can be especially important when dealing with sensitive species, or species for which handling requires particular governmental accreditation.
 
 ## Value of revisiting datasets
 
