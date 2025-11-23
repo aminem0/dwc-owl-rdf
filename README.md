@@ -81,7 +81,7 @@ In the case of the lemming nests dataset, consideration of a `dcterms:Location` 
 
 ### Joseph Rock herbarium
 
-Both [the dead GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca/HAW_DwC-A.zip) and [the dead alternative identifier link](https://serv.biokic.asu.edu/pacific/portal/collections/misc/collprofiles.php?collid=1). The collection's [link on iDigBio](https://portal.idigbio.org/portal/recordsets/959c0dc4-fcf3-477e-af63-c00a005dbc0a) shows a collection with a differing amount of occurrences. Likewise, visiting [the University of Hawaiʻi at Mānoa webpage](https://manoa.hawaii.edu/herbarium/) gives no link to visit the digitized collection. Consequently, there seems to be no direct way to obtain the dataset than through the method described above.
+Both [the GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca/HAW_DwC-A.zip) and [the alternative identifier link](https://serv.biokic.asu.edu/pacific/portal/collections/misc/collprofiles.php?collid=1) are dead. The collection's [link on iDigBio](https://portal.idigbio.org/portal/recordsets/959c0dc4-fcf3-477e-af63-c00a005dbc0a) shows a collection with a differing amount of occurrences. Likewise, visiting [the University of Hawaiʻi at Mānoa webpage](https://manoa.hawaii.edu/herbarium/) gives no link to visit the digitized collection. Consequently, there seems to be no direct way to obtain the dataset than through the method described above.
 
 ### Colombia bird ring
 
@@ -106,7 +106,9 @@ Furthermore, suppose we had the crop dataset stored in a triplestore and that it
 PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
 PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
 
-SELECT ?occPol ?occSci WHERE {
+SELECT ?occPol ?occSci
+
+WHERE {
   ?occPol a dwc:Occurrence ;
           dwc:scientificName ?occSci ;
           dwc:occurrenceRemarks ?occRem .
@@ -118,13 +120,17 @@ SELECT ?occPol ?occSci WHERE {
 
 The query is a simple SPARQL query with regex-based pattern searching of the `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄花` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄花` or hiragana `ゆうか`? Would he consider the literal term `male` or a symbol such as `♂`?
 
+Note that this notion is quite real, as the previously seen Colombia bird ring dataset provided bird sex as the Spanish `Macho` and `Hembre`. Likewise, the capitalization of `Macho` means that unless come form of string manipulation is employed, `Macho` will not be considered the same as `macho`.
+
 On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose, but is much more concise and consists of:
 
 ```sparql
 PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
 PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
 
-SELECT ?occPol ?occSci WHERE {
+SELECT ?occPol ?occSci
+
+WHERE {
   ?occPol a dwc:Occurrence ;
           dwc:scientificName ?occSci .
   
