@@ -6,7 +6,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 
 ## Test datasets
 
-- **Aulavik lemming nests**: A dataset about yearly visits to 10 plots in Aulavik national park where lemming nests were counted. The data, as a csv file was downloaded from the [Government of Canada website](https://open.canada.ca/data/en/dataset/23694c59-ceec-4042-9e23-370b82e792a2).
+- **Aulavik lemming nests**: A dataset about yearly visits to 9 plots in Aulavik national park where lemming nests were counted. The data, as a csv file was downloaded from the [Government of Canada website](https://open.canada.ca/data/en/dataset/23694c59-ceec-4042-9e23-370b82e792a2).
 - **Broke-West fish campaign**: the Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish).
 - **Colombia bird banding**: A dataset of bird occurrences between 2018 and 2023. Birds were captured with mist nets, had various attributes measured and were banded before being released. The dataset, as a Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/9407c83f-8690-4965-b4fb-48e8911d9430).
 - **Crop flower visit**: A dataset of visits of insects to flowering plants in a Japanese orchard. The dataset, as a sampling event Darwin Core Archive was downloaded [from the GBIF website](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd).
@@ -16,6 +16,14 @@ Given that this project is developped in conjunction with the ontology, any modi
 - **Lanternfish gut metabarcoding**: A DNA metabarcoding analysis of lanternfish gut content. The dataset, as a Darwin Core Archive with a DNA derived extension was downloaded [from the marine CSIRO IPT website](https://www.marine.csiro.au/ipt/resource?r=in2019_v03_edna_nanopore).
 - **Luna & Mothra AMI traps**: A dataset of AI identified moths from an autonomous moth or insect traps set up in Vermont. Identifications were performed using AI models trained to recognize lepidoptera species from images. The data were obtained by querying [the demo API of the Antenna webpage](https://demo.antenna.insectai.org/projects/3/summary).
 - **NMNH paleobiology specimen**: The Darwin Core DataPackage was downloaded [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
+- **Ryukyu Reef Images**: 
+NOTE:
+
+https://www.gbif.org/dataset/ffd03c32-a7ca-4fae-adc8-6f81cddbe43b and
+https://obis.org/dataset/61a0fac8-6bba-4c30-986b-248bc12da62c
+
+The OBIS link leads to 
+https://www.godac.jamstec.go.jp/ipt/resource?r=jamstec_godac_coralreef_web
 - **Turtle movement dataset**: A dataset of geographically tracked sea turtles. The dataset was downloaded in pieces (one .csv file per individual) from the Movebank [through the Tracking Data Map](https://www.movebank.org/cms/webapp/map).
 - **Viridian forest survey**: The dataset consists of a forest survey for bug and flying Pokémon done by Ash Ketchum in Viridian forest. The Darwin Core DataPackage was obtained [from the test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey).
 
@@ -88,7 +96,20 @@ Both [the GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca
 The dataset is different than others for the following reasons:
 
 1. It is written entirely in Spanish, whereas the others were written in English (even the crop flower visit, that was conducted in Japan). This provides a good test case of how to use language tags in RDF for biodiversity datasets.
-2. It contains a `permit.txt` extension. This extension is a recognized extension, [the GGBN permit extension](https://rs.gbif.org/extension/ggbn/permit_2022-08-08.xml). However, the use is quite different than what is defined in the extension schema. Nonetheless, it will offer an example of how permit information can be supplied in biodiversity datasets. This can be especially important when dealing with sensitive species, or species for which handling requires particular governmental accreditation.
+2. It contains a `permit.txt` extension. This extension is a recognized extension, [the GGBN permit extension](https://rs.gbif.org/extension/ggbn/permit_2022-08-08.xml). However, the use is quite different than what is defined in the extension schema.
+
+On the surface, the entry for `permit:permitType` of `Permiso de recolección de especímenes de especies silvestres` seems similar to `Collecting Permit`, it is not one of the restricted 
+
+Likewise, the value of `Permiso vigente` is not valid 
+Finally, the given value for `permit:permitText` of `ANLA:01102:2022:SELVA` is probably not valid. The entry is supposed to be a text entry of the permit. What is given instead is a value that looks like a URN, but is not. Consequently, if it were a URN, it would be better-suited for the property `permit:permitURI`, with ANLA standing for [Autoridad Nacional de Licencias Ambientales](https://www.anla.gov.co/).
+
+Nonetheless, it will offer an example of how permit information can be supplied in biodiversity datasets. This can be especially important when dealing with sensitive species, or species for which handling requires particular governmental accreditation.
+
+Semantically, it requires the creation of a new class, `dwc:Permit`, which can be the OOOO of these properties. This is mainly because a sampling permit, is OOOOO
+
+ Accordingly, two new object properties are created `dwcdp:allowsFor` and `dwcdp:issuedBy`. The first, `dwcdp:allowsFor`, links the `dwc:Permit` instance to the `dwc:Events` it allows for. This relationship is one-to-many, as one permit is valid for carrying out several sampling events. The second, `dwcdp:issuedBy`, relates the `dwc:Permit` to the `dcterms:Agent` that issued it. This `dcterms:Agent` is usually a governmental organization, responsible for evaluating, granting, and monitoring environmental licenses and permits, such as ANLA in Colombia.
+
+In the end, 
 
 ## Value of revisiting datasets
 
@@ -120,7 +141,7 @@ WHERE {
 
 The query is a simple SPARQL query with regex-based pattern searching of the `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄花` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄花` or hiragana `ゆうか`? Would he consider the literal term `male` or a symbol such as `♂`?
 
-Note that this notion is quite real, as the previously seen Colombia bird ring dataset provided bird sex as the Spanish `Macho` and `Hembre`. Likewise, the capitalization of `Macho` means that unless come form of string manipulation is employed, `Macho` will not be considered the same as `macho`.
+Note that this notion is quite real, as the previously seen Colombia bird ring dataset provided bird sex as the Spanish `Macho` and `Hembra`. Likewise, the capitalization of `Macho` means that unless come form of string manipulation is employed, `Macho` will not be considered the same as `macho`.
 
 On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose, but is much more concise and consists of:
 
