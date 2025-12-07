@@ -8,7 +8,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 
 The Viridian forest survey is exceptionally good, because even though it is semantically and ecologically complex, considering several relationship between entities, it is small enough to let us view the labelled edges.
 
-![Labeled graph of the Viridian forest survey](images/viridian-labeled-graph.png)
+![Labeled graph of the Viridian forest survey](images/complete/viridian-labeled-graph.png)
 
 As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of how the data are meant to be understood. To that end, the ontology in DWC-OWL allows for complex linking and eventually querying of these entities, maximizing reuse potential.
 
