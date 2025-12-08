@@ -152,7 +152,7 @@ For example, the following SPARQL DESCRIBE output illustrates how a media object
             dc:format "image/jpeg" ;
             dcterms:title "HNK-C0CZQ-JLF06-IMAG0444.JPG" ;
             dwcdp:evidenceFor <https://www.gbif.org/occurrence/5893170344> ] ;
-    dwcdp:identifiedBy <https://scholar.google.com/citations?user=JPHTcaIAAAAJ> ;
+    dwcdp:identifiedBy <https://scholar.google.com/citations?user=JPHTcaIAAAAJ> .
 ```
 
 This correctly states that the identification is based on a `ac:Media` instance called `"HNK-C0CZQ-JLF06-IMAG0444.JPG"`, even though no external identifier exists for the image.
