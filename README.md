@@ -123,8 +123,6 @@ Although Wei Zhao (the human agent) is listed as the value for all `dwc:recorded
 
   Convergence was noted at multiple levels do to the fact that several entities connected to particular nodes. Indeed, all occurrences were recorded by the same type of agent, the deployed camera. Likewise, all events occur at fixed physical locations, the cameras being fixed. These explain why the number of distinct `dcterms:Agent` and `dcterms:Location` nodes is small.
 
-![Directed graph for the jiulongfeng dataset](images/complete/jiulongfeng-directed-graph.png)
-
 - **Lessons learned**: This dataset was chosen specifically because it should contain media information but does not.
 One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-imag0004-avi, but doing so falsely implies the existence of a persistent, resolvable link. Instead, this modeling exercise explored the use of blank nodes for representing media entities that are known to exist but have no retrievable identifier.
 
