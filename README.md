@@ -107,6 +107,8 @@ Each dataset will therefore be described according to the following structure:
 
   The self-relationship of dwc:Event via `dwcdp:happenedDuring` enables nested event structures, which are required for camera-trap data where each detection event occurs within a parent deployment event.
 
+![Ontology subset for the jiulongfeng dataset](images/subset/jiulong-small.png)
+
 - **Additions made**: Each camera was modeled as a separate `dcterms:Agent`. Since the cameras were all deployed at different sites in early 2022, assigning each location its own camera agent is reasonable.
 
 Although Wei Zhao (the human agent) is listed as the value for all `dwc:recordedBy` entries in the published dataset, this is misleading. The camera is the entity that records occurrences, whereas the human identifies the organism. The model was therefore corrected to reflect this protocol.
