@@ -56,7 +56,7 @@ Each dataset will therefore be described according to the following structure:
 
 - **Dataset definition**: Between 2017 and 2021, the National Agriculture and Food Research Organization (NARO) of Japan conducted a series of monitoring activities focusing on insects visiting crop flowers across the country. At multiple farms, wild insects visiting crop production trees were captured and preserved in plastic vials. These preserved organisms were later identified to assess the abundance and diversity of pollinators contributing to crop production.
 
-- **Dataset organization**: The dataset, published as a Sampling event Darwin Core Archive, was downloaded [from the GBIF](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd). It includes two tab-delimited text files: `occurrence.txt`, which contains records of individual insect occurrences; and `event.txt`, which provides information about each sampling event—typically a single day, or occasionally a series of days, during which crop trees were monitored for flower-visiting insects.
+- **Dataset organization**: The dataset, published as a Sampling event Darwin Core Archive, was downloaded [from GBIF](https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd). It includes two tab-delimited text files: `occurrence.txt`, which contains records of individual insect occurrences; and `event.txt`, which provides information about each sampling event—typically a single day, or occasionally a series of days, during which crop trees were monitored for flower-visiting insects.
 
 - **Modelling considerations**: In `occurrence.txt`, each row corresponds to an insect that visited a flower, was captured, and later identified. This single row therefore conflates several distinct entities that must be separated in RDF. Specifically:
   
@@ -184,6 +184,48 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   Blank nodes should be used sparingly because they limit interoperability, as they cannot be referred to outside of the considered graph. However, in cases like this, where the existence of an entity without a persistent ID is necessary to the correct interpretation of the data, they are appropriate and semantically meaningful.
 
+### Lanternfish gut metabarcoding
+
+- **Dataset definition**: During the 2nd International Indian Ocean Expedition (May–June 2019), aboard the RV Investigator, juvenile lanternfish (*Hygophum*) were sampled in the Indian Ocean. Their gut contents and gut lining were analyzed using DNA metabarcoding following several protocols. The protocols compared included the Nanopore MinION and Illumina MiSeq sequencing platforms, as well as three primer sets: COI "Leray", 18S rRNA V4 "Zhan", and COI "Lobo". The resulting nucleotide sequences were submitted to BLASTN (blastn 2.12.0, e-value cutoff = 0.001, percent identity ≥ 80%) to evaluate the diet of these fishes.
+
+- **Dataset organization**: The dataset, published as a Darwin Core Archive, was downloaded [from OBIS](https://obis.org/dataset/5d206e57-370c-453f-a882-b54d517294e7). It contains the standard `occurrence.txt` table, as well as a `dnaderiveddata.txt` table describing molecular analyses and their resulting sequences, and a `resourcerelationship.txt` table describing relationships between each fish and its gut content.
+
+- **Modelling considerations**: The content of the `resourcerelationship.txt` table is relatively straightforward: each fish occurrence is related to gut-content occurrences using a predator–prey relationship, expressed as `hasEaten`. This can be modelled as an instance of `dwc:OrganismRelationship` (a subclass of `dwc:ResourceRelationship`) connecting the fish occurrence and the prey occurrence. The specific nature of the relationship is described using an instance of `dwc:OrganismRelationshipAssertion`.
+
+  The `dnaderiveddata.txt` table requires more substantial modelling effort, because its rows combine information about:
+
+  1. The molecular protocol followed, modelled as an instance of `dwc:MolecularProtocol`, with datatype properties in the `mixs:` and `gbif:` namespaces.
+  2. The sequencing analysis performed, modelled as an instance of `dwc:NucleotideAnalysis`, which links the protocol followed, the material being sequenced, and the sequences produced.
+  3. The nucleotide sequences generated, modelled as instances of `dwc:NucleotideSequence`, which serve as evidence for the prey occurrences inferred from BLAST results.
+
+  The occurrences of fish themselves represent actual organisms collected during the cruise. In contrast, the occurrences of prey items represent taxa inferred from nucleotide sequences, and therefore use the `dwc:NucleotideSequence` as their evidence.
+
+- **Ontology subset considered**: The relationships between classes in this dataset are relatively complex. To distinguish between the fish occurrences and the prey occurrences, separate nodes were created even though both are instances of `dwc:Occurrence`.
+
+  Each fish occurrence was associated with the `dwc:Event` representing the cruise, which is when the captures took place, conducted by a `dcterms:Agent`. Two `dwc:MaterialEntity` instances, gut content and gut lining, were derived from each fish. Because all fish were captured during the cruise (i.e. the same `dwc:Event`), an additional property `dwcdp:derivedFrom` was required to relate each material entity to the corresponding fish occurrence.
+
+  The metabarcoding workflow produced instances of `dwc:NucleotideSequence` via instances of `dwc:NucleotideAnalysis`, each linked to a `dwc:MolecularProtocol`. Given the nature of the process, each analyses produced a large number of sequences. Because prey occurrences are inferred from these sequences, they are not observed occurrences but evidence-based, inferred on the basis of the nucleotide sequences.
+
+  Finally, each prey occurrence participates in a predator–prey interaction with the corresponding fish occurrence. This relationship is modelled using `dwc:OrganismInteraction` that links the two occurrences.
+
+![Ontology subset for the lanternfish dataset](images/subset/lanternfish-small.png)
+
+- **Additions made**: The fish occurrences themselves are present in the Darwin Core Archive. However, the detail that the sampling took place aboard the RV Investigator during the 2nd International Indian Ocean Expedition is provided only in the accompanying documentation and publication. To represent this, the vessel was modelled as a `dcterms:Agent` that conducted the sampling, using a web page describing the vessel as its identifier. Similarly, a web page describing the cruise was used as the identified of the `dwc:Event`.
+
+- **Difficulties encountered**: The DNA-Derived Data extension for Darwin Core is very helpful for describing genetic and molecular information. However, because each row is represented with a single identifier, separating different conceptual entities requires careful parsing. In the lanternfish dataset, identifiers in the `dnaderiveddata.txt` file follow patterns such as `<urn:edna:in2019_v03_edna_nanopore_{fish-id}_{platform}_{primers}_{material}-{uuid}>`. Note that the `dwc:occurrenceID` of each fish in `occurrence.txt` is of the form `<urn:edna:in2019_v03_edna_nanopore_{fish-id}-1>`. I have not yet uncovered the meaning of this 1.
+
+  Additionally, it should be noted that the `dnaderiveddata.txt` file contains human-reable entry names, which requires an additional conversion step. Indeed, human-readable terms like `target_gene` or `otu_db` allow quick lookup, but require an additional step to convert to but the MIxS property URIs, which are identified using numbers like `0000044` and `0000087`. Though the matter can be easily resolved by building a Python dictionary and using it as a lookup table.
+
+- **Graph-based representation**: At the center of the graph is the `dwc:Event` corresponding to the 2nd International Indian Ocean Expedition. The fish occurrences connect directly to this event. Each fish serves as the origin point for a branching structure resembling a butterfly (or a starfish or a jellyfish): its predator-prey relationship, as `dwc:OrganismInteraction` entities connect them to the clusters of prey occurrences. This connection thickens the "arms", as each fish consumed a fair amount of prey.
+
+  All prey occurrences connect to `dwc:NucleotideSequence` instances, which converge at the `dwc:NucleotideAnalysis` node that produced them. As groups, nucleotide sequences are produced by the same nucleotide analysis, this causes a tightening at the extremities. Though it is difficult to see, the `dwc:MolecularProtocol` instances act as thin threads linking analyses that used the same protocol, producing cross-connections within and across fish.
+
+![Directed graph for the lanternfish dataset](images/complete/lanternfish-directed-graph.png)
+
+- **Lessons learned**: Although the DNA-Derived Data extension mixes multiple types of information in a single row, its overall structure is extremely helpful when representing genetic workflows. The newer classes (`dwc:NucleotideAnalysis`, `dwc:NucleotideSequence`, and `dwc:MolecularProtocol`) enable clear distinctions between different components of the sequencing workflow.
+
+  This modelling approach supports richer biodiversity knowledge graphs: occurrences can be queried based on the material they were derived from, the molecular protocol used, or the sequencing results themselves. As a result, metabarcoding datasets become more reusable, interoperable, and semantically expressive.
+
 ### Ryukyu Islands reef media
 
 - **Dataset definition**: Along the coral reefs of the Ryukyu Islands (Japan), the Global Oceanographic Data Center (GODAC) collected images and videos of marine organisms using a remotely operated underwater vehicle. Organisms visible in these media were later identified, and biological occurrence records were generated based on the geographic location at which each photograph or video was captured. Identifications were based on Japanese vernacular names and, when identifications required additional clarification, relevant taxonomic literature was consulted.
@@ -225,9 +267,7 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
 ![Directed graph for the reef dataset](images/complete/reef-directed-graph.png)
 
-- **Lessons learned**: 
-
-Media resources are an increasingly important component of biodiversity datasets. Because images and videos can be shared online, the annotation of media, including rights metadata, controlled vocabulary values, and links between organisms, identifications, and media objects—should be treated as a crucial element of dataset modelling.
+- **Lessons learned**: Media resources are an increasingly important component of biodiversity datasets. Because images and videos can be shared online, the annotation of media, including rights metadata, controlled vocabulary values, and links between organisms, identifications, and media objects—should be treated as a crucial element of dataset modelling.
 
   Controlled vocabularies such as the TDWG subject orientation and subject part vocabularies can enrich media annotations. For example, the following SPARQL DESCRIBE output illustrates how a media object might be annotated:
 
@@ -277,9 +317,6 @@ In this case, the object properties `dwcdp:hasSubjectOrientation` and `dwcdp:has
 
 
 
-
-
-
 ### Broke-West fish
 
 Whereas the Viridian forest survey dataset contained `251` triples, the Broke-West fish dataset contains `173 062` triples and considers more classes. Despite this, the same underlying logic can be applied to obtain a directional graph as well, which faithfully describes the dataset.
@@ -291,12 +328,6 @@ Whereas the Viridian forest survey dataset contained `251` triples, the Broke-We
 The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of `dwc:Identifications` correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
 
 ![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
-
-### Lanternfish gut metabarcoding
-
-For the lanternfish dataset, the entire DNA-derived dataset table was remapped onto Darwin Core DataPackage terms and needed the newly-defined classes of `dwc:NucleotideAnalysis`, `dwc:NucleotideSequence` and `dwc:MolecularProtocol`. Graphical representation of the dataset showed  of a subset produced showed that the data group relating to each fish, which follows the sampling program.
-
-![Directed graph of the lanternfish dataset](images/lanternfish-directed-graph.png)
 
 ### Moth AMI
 
