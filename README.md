@@ -52,6 +52,60 @@ Each dataset will therefore be described according to the following structure:
 
 ## Real-world datasets
 
+### Colombia bird ringing
+
+- **Dataset definition**: As part of SELVA's Migration Ecology research program to study the ecology of migratory birds across ten departments in Colombia, a set of mist nets were set up across Colombia to study wild birds. This study would enable a better understanding of bird patterns, especially at stopover sites and for key conservation species such as the cerulean warbler (*Setophaga cerulea*) and the blackpoll warbler (*Setophaga striata*). Between 2018 and 2023, a total of 5 581 birds were recorded, banded and had measurements taken before being released into the wild.
+
+- **Dataset organization**: The dataset can be downloaded [from GBIF](https://www.gbif.org/dataset/9407c83f-8690-4965-b4fb-48e8911d9430)
+The dataset contains the the standard `occurrence.txt` table that contains information about the bird occurrences and an `extendedmeasurementorfact.txt` table that contains information about the bird traits. In addition, it also includes a `permit.txt` file that contains information about a collecting permit that allowed for the project to take place.
+
+- **Modelling considerations**: Each ringed bird was modelled as an individual `dwc:Organism`. The ring inscription was recorded as the organism’s identifier. Individual morphological and biometrical measurements (mass, wing length, etc.) were modelled as `dwc:Assertion` instances associated with the `dwc:Organism`. Taxonomic identifications were modelled using `dwc:Identification` which also targeted the individual.
+
+  The permit metadata are represented as a `dwc:Permit` class, which links to the sampling events that it authorises. Permit properties from the GGBN Permit Extension, `ggbn:permitStatus` and `ggbn:permitType`, were used to record controlled-vocabulary values, as these should be represented as URIs drawn from the GGBN vocabularies.
+
+- **Ontology subset considered**: The core classes of `dwc:Organism`, `dwc:Occurrence`, `dwc:Event`, `dcterms:Location` and `dwc:Assertion` were used to model the bird captures and their measured traits. In this case the permit issuing authority is modeled as a `dcterms:Agent`.
+
+Permit-related modelling introduces `dwc:Permit` class, together with additional classes of `dwc:PermitStatus` and `dwc:PermitType` that aggregate the GGBN permit vocabulary terms, represented as SKOS concepts.
+
+![Ontology subset for the birdring dataset](images/subset/birdring-small.png)
+
+- **Additions made**: In the `permit.txt` file, the entry for `ggbn:permitText` is `ANLA:01102:2022:SELVA`. This identifier seems to be referring to the permit that is considered in the study. It would be valid to assume that `ANLA` would stand for [Autoridad Nacional de Licencias Ambientales](https://www.anla.gov.co/), being the body that issued the permit. Consequently, the ANLA was modeled as a `dcterms:Agent` that issued the permit.
+
+The permit extension allows the addition of legal status of material (specimen, tissue, DNA, etc.). However, the vocabulary is made up mainly of `skos:Concepts`, which even though they have their applications, are difficult to frame within an ontology. This is partly due to the fact that `skos:Concepts` have no inherent hierarchy, as they are all instances of the class `skos:Concept` and are linked together through `skos:broader` and `skos:narrower` relationships and are grouped into `skos:ConceptSchemes`. Nonetheless, they are useful ways to organise sets of terms that do not require strong hierarchical structure.
+
+Semantically, it requires the creation of a new class, `dwc:Permit`, which can be linked to these these properties. Accordingly, two new object properties are created `dwcdp:allowsFor` and `dwcdp:issuedBy`. The first, `dwcdp:allowsFor`, links the `dwc:Permit` instance to the `dwc:Events` it allows for. This relationship is one-to-many, as one permit is valid for carrying out several sampling events. The second, `dwcdp:issuedBy`, relates the `dwc:Permit` to the `dcterms:Agent` that issued it. This `dcterms:Agent` is usually a governmental organization, responsible for evaluating, granting, and monitoring environmental licenses and permits, such as ANLA in Colombia.
+
+- **Difficulties encountered**: The main issue encountered with the modeling of this dataset was with regards to the `permit.txt` extension, most notably, how the enties are handled. Each row in this table is identified by the occurrence identifier, and therefore relates each occurrence to the permit. Consider the following line:
+
+| id                         | permitType                                                   | permitStatus    | permitText            |
+|----------------------------|--------------------------------------------------------------|-----------------|-----------------------|
+| SELVA:anillamiento:BB05234 | Permiso de recolección de especímenes de especies silvestres | Permiso vigente | ANLA:01102:2022:SELVA |
+
+This entry presents several difficulties which make its translation into RDF difficult. Therefore, the following modifications were considered:
+  
+  1. The value of `ANLA:01102:2022:SELVA` was not considered as a valid entry for `ggbn:permitText`, it was used instead as the URI for the `dwc:Permit`.
+  2. The free-form text of `"Permiso de recolección de especímenes de especies silvestres"@es` was used as the value of `ggbn:permitText`.
+  3. The value of `ggbn:permitType` needs to be a URI, and one from a controlled vocabulary, the one established by the GGBN Permit Type Vocabulary. Given the Spanish description of the permit, the URI for Collecting Permit, `<http://data.ggbn.org/schemas/GGBN/terms/vocabulary/permit_type/Collection_Permit>`, was chosen.
+  4. The value of `ggbn:permitStatus` needs to be a URI, and one from a controlled vocabulary, the one established by the GGBN Permit Status Vocabulary. Given the Spanish description of the permit, the URI for Collecting Permit, there seems to be no exact match. The closest that could be found is the URI for Permit Available `<http://data.ggbn.org/schemas/ggbn/terms/Permit_available>`, which was chosen.
+  5. In the `id` column is the value of a `dwc:Occurrence`. However, from a semantic point of view it does not make sense for a permit to allow for an occurrence to take place. A `dwc:Permit` would be best described as a document allowing for the conduction of an activity. In this case.
+  Note that the range of the object 
+  
+  Note that these terms are instances of `skos:Concepts` so though they represent valid URIs, they do not fit directly within an ontology. To accomodate their usage in DwC-OWL, OWL classes, which are subclasses of `skos:Concept` were created. Doing so allows all the terms in the vocabulary to be collected and enumerated under one class, something that cannot be done with a `skos:ConceptScheme`. Furthermore, by proceeding in this manner, all instances of this subclass remain valid `skos:Concepts`, which does not change their semantic interpretation.
+
+  Note also, that row 11078 in the `extendedmeasurementorfact.txt` will cause a breakage in the parser, as the weight of the bird is given as `12,7` g, which is not a valid number.
+
+- **Graph-based representation**: At the center of the graph are two entities, the single `dwc:Permit` and the set of `dcterms:Locations`. The single permit is related to all `dwc:Events` as it allowed for them. The fact that there are so few `dcterms:Locations` is due to the fixed nature of the mist nets. Several bird captures, modeled as `dwc:Events` can happen, but they will be at the same geographic spot, which is where the mist nets are positioned. The `dwc:Events`, representing the capture of each bird cluster around these points.
+
+  These events are linked to information about each individual `dwc:Organism`, representing each individual bird. Each bird has a `dwc:Occurrence`, which represents its capture; a `dwc:Identification`, which represents its taxonomic assignment; and a set of `dwc:Assertions` which provide information about each measurement taken on it.
+
+![Directed graph for the bird ringing dataset](images/complete/birdring-directed-graph.png)
+
+- **Lessons learned**: The original consideration in this dataset is the consideration of a novel `dwc:Permit` class and its associated classes for the controlled. This class has not been proposed in the DwC-DP model, so it should not be considered authoritative. However, its consideration might prove necessary in cases like this, where permit information is available and can be added. Nonetheless, it will offer an example of how permit information can be supplied in biodiversity datasets. This can be especially important when dealing with sensitive species, or species for which handling requires particular governmental accreditation.
+
+  One main point of contention would be whether or not the permit vocabulary is applicable to events and occurrences. The permit vocabulary is mentionned as having `a 1:many relation for 1 specimen, tissue, or DNA record` and that it `has to be used with the new defined Material Sample Core (not the Occurrence Core)`. However, there is evidently interest, as there is a published occurrence dataset that makes use of the extension (albeit without respecting the controlled vocabulary aspect).
+
+  Though the terms seem independent, they are semantically linked. For example, a preserved specimen in a collection or in a herbarium may represent a material sample, but has an associated occurrence when it was taken. Likewise, a soil or water sample may be a material entity, but from it several occurrences can be derived through either taxonomic analysis or genomic sequencing.
+
 ### Crop pollinisator visits
 
 - **Dataset definition**: Between 2017 and 2021, the National Agriculture and Food Research Organization (NARO) of Japan conducted a series of monitoring activities focusing on insects visiting crop flowers across the country. At multiple farms, wild insects visiting crop production trees were captured and preserved in plastic vials. These preserved organisms were later identified to assess the abundance and diversity of pollinators contributing to crop production.
@@ -80,7 +134,7 @@ Each dataset will therefore be described according to the following structure:
 
 - **Graph-based representation**: The `dwc:Protocol` instance functions as a central hub within the graph. All `eco:Survey` instances radiate outward, representing surveys conducted under the same protocol. Each survey is linked to its corresponding `dwc:Event`. The multiple `dwc:Occurrences` associated with each event create the characteristic "flower-like" appearance of the directed graph.
 
-![Directed graph for the turtles dataset](images/complete/crop-directed-graph.png)
+![Directed graph for the crop dataset](images/complete/crop-directed-graph.png)
 
 - **Lessons learned**: The fact that the dataset was published as a sampling event dataset greatly facilitated modelling. However, a recurring ambiguity remains: determining the appropriate number of `dwc:Event` levels to model. In this dataset, each `dwc:Event` corresponds to a day (or series of days) during which observations took place. One could argue that each individual insect visit could itself be modeled as a `dwc:Event`, with the day acting as a parent event. This would allow finer annotation—such as time of visit, behavioural notes, or observer remarks.
 
@@ -134,26 +188,26 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   For example, the following SPARQL DESCRIBE output illustrates how a media object might be modeled using a blank node:
 
-```turtle
-@prefix ac: <http://rs.tdwg.org/ac/terms/> .
-@prefix dc: <http://purl.org/dc/elements/1.1/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
-@prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
+  ```turtle
+  @prefix ac: <http://rs.tdwg.org/ac/terms/> .
+  @prefix dc: <http://purl.org/dc/elements/1.1/> .
+  @prefix dcterms: <http://purl.org/dc/terms/> .
+  @prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+  @prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
 
-<https://www.gbif.org/occurrence/5893170344-ident> a dwc:Identification ;
-    dwc:class "Mammalia" ;
-    dwc:family "Mustelidae" ;
-    dwc:kingdom "Animalia" ;
-    dwc:order "Carnivora" ;
-    dwc:phylum "Chordata" ;
-    dwc:scientificName "Arctonyx collaris" ;
-    dwcdp:basedOn [ a ac:Media ;
-            dc:format "image/jpeg" ;
-            dcterms:title "HNK-C0CZQ-JLF06-IMAG0444.JPG" ;
-            dwcdp:evidenceFor <https://www.gbif.org/occurrence/5893170344> ] ;
-    dwcdp:identifiedBy <https://scholar.google.com/citations?user=JPHTcaIAAAAJ> .
-```
+  <https://www.gbif.org/occurrence/5893170344-ident> a dwc:Identification ;
+      dwc:class "Mammalia" ;
+      dwc:family "Mustelidae" ;
+      dwc:kingdom "Animalia" ;
+      dwc:order "Carnivora" ;
+      dwc:phylum "Chordata" ;
+      dwc:scientificName "Arctonyx collaris" ;
+      dwcdp:basedOn [ a ac:Media ;
+              dc:format "image/jpeg" ;
+              dcterms:title "HNK-C0CZQ-JLF06-IMAG0444.JPG" ;
+              dwcdp:evidenceFor <https://www.gbif.org/occurrence/5893170344> ] ;
+      dwcdp:identifiedBy <https://scholar.google.com/citations?user=JPHTcaIAAAAJ> .
+  ```
 
   This correctly states that the identification is based on a `ac:Media` instance called `"HNK-C0CZQ-JLF06-IMAG0444.JPG"`, even though no external identifier exists for the image.
 
@@ -161,24 +215,24 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   The same logic applies to modeling cameras, where the snippet:
 
-```turtle
-@prefix ac: <http://rs.tdwg.org/ac/terms/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
-@prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
+  ```turtle
+  @prefix ac: <http://rs.tdwg.org/ac/terms/> .
+  @prefix dcterms: <http://purl.org/dc/terms/> .
+  @prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+  @prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
 
-<https://www.gbif.org/occurrence/5893170486> a dwc:Occurrence ;
-    dwc:class "Mammalia" ;
-    dwc:family "Mustelidae" ;
-    dwc:kingdom "Animalia" ;
-    dwc:order "Carnivora" ;
-    dwc:phylum "Chordata" ;
-    dwc:scientificName "Martes flavigula" ;
-    dwcdp:happenedDuring <https://www.gbif.org/occurrence/5893170486-event> ;
-    dwcdp:recordedBy [ a dcterms:Agent,
-            dwc:agentType "camera trap" ;
-            dwc:preferredAgentName "camera trap JLF06" ] .
-```
+  <https://www.gbif.org/occurrence/5893170486> a dwc:Occurrence ;
+      dwc:class "Mammalia" ;
+      dwc:family "Mustelidae" ;
+      dwc:kingdom "Animalia" ;
+      dwc:order "Carnivora" ;
+      dwc:phylum "Chordata" ;
+      dwc:scientificName "Martes flavigula" ;
+      dwcdp:happenedDuring <https://www.gbif.org/occurrence/5893170486-event> ;
+      dwcdp:recordedBy [ a dcterms:Agent,
+              dwc:agentType "camera trap" ;
+              dwc:preferredAgentName "camera trap JLF06" ] .
+  ```
 
   This states that the occurrence was recorded by a specific camera agent, but the agent is a blank node without a global identifier.
 
@@ -480,26 +534,6 @@ In the case of the lemming nests dataset, consideration of a `dcterms:Location` 
 ### Joseph Rock herbarium
 
 Both [the GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca/HAW_DwC-A.zip) and [the alternative identifier link](https://serv.biokic.asu.edu/pacific/portal/collections/misc/collprofiles.php?collid=1) are dead. The collection's [link on iDigBio](https://portal.idigbio.org/portal/recordsets/959c0dc4-fcf3-477e-af63-c00a005dbc0a) shows a collection with a differing amount of occurrences. Likewise, visiting [the University of Hawaiʻi at Mānoa webpage](https://manoa.hawaii.edu/herbarium/) gives no link to visit the digitized collection. Consequently, there seems to be no direct way to obtain the dataset than through the method described above.
-
-### Colombia bird ring
-
-The dataset is different than others for the following reasons:
-
-1. It is written entirely in Spanish, whereas the others were written in English (even the crop flower visit, that was conducted in Japan). This provides a good test case of how to use language tags in RDF for biodiversity datasets.
-2. It contains a `permit.txt` extension. This extension is a recognized extension, [the GGBN permit extension](https://rs.gbif.org/extension/ggbn/permit_2022-08-08.xml). However, the use is quite different than what is defined in the extension schema.
-
-On the surface, the entry for `permit:permitType` of `Permiso de recolección de especímenes de especies silvestres` seems similar to `Collecting Permit`, it is not one of the restricted 
-
-Likewise, the value of `Permiso vigente` is not valid 
-Finally, the given value for `permit:permitText` of `ANLA:01102:2022:SELVA` is probably not valid. The entry is supposed to be a text entry of the permit. What is given instead is a value that looks like a URN, but is not. Consequently, if it were a URN, it would be better-suited for the property `permit:permitURI`, with ANLA standing for [Autoridad Nacional de Licencias Ambientales](https://www.anla.gov.co/).
-
-Nonetheless, it will offer an example of how permit information can be supplied in biodiversity datasets. This can be especially important when dealing with sensitive species, or species for which handling requires particular governmental accreditation.
-
-Semantically, it requires the creation of a new class, `dwc:Permit`, which can be the OOOO of these properties. This is mainly because a sampling permit, is OOOOO
-
- Accordingly, two new object properties are created `dwcdp:allowsFor` and `dwcdp:issuedBy`. The first, `dwcdp:allowsFor`, links the `dwc:Permit` instance to the `dwc:Events` it allows for. This relationship is one-to-many, as one permit is valid for carrying out several sampling events. The second, `dwcdp:issuedBy`, relates the `dwc:Permit` to the `dcterms:Agent` that issued it. This `dcterms:Agent` is usually a governmental organization, responsible for evaluating, granting, and monitoring environmental licenses and permits, such as ANLA in Colombia.
-
-In the end, 
 
 ## Value of revisiting datasets
 
