@@ -289,6 +289,136 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
 In this case, the object properties `dwcdp:hasSubjectOrientation` and `dwcdp:hasSubjectPart` play a role similar to `ac:subjectOrientationIRI` and `ac:subjectPartIRI`. However, the difference is that the `dwcdp:` bridges the gap between the OWL ontology and the SKOS vocabulary, by creating a subclass of `skos:Concept`. This allows for the creation an enumerated range for the object property and the consideration of various vocabularies.
 
+### *Solidobalanus fallax* records publication
+
+- **Dataset definition**: In 2004, the `Journal of the Marine Biological Association of the United Kingdom` (volume 84) published a paper titled `Habitat and distribution of the warm-water barnacle Solidobalanus fallax (Crustacea: Cirripedia) records`. The paper compiles occurrence records for the barnacle *Solidobalanus fallax* in the Plymouth area (south-west England). Records derive from a variety of sources, including trawl surveys on the Plymouth inshore grounds (since 1994), SCUBA observations (since 2000), and personal communications. The species is noted as having the potential to become a pest of aquaculture infrastructure south of Britain.
+
+- **Dataset organization**: The dataset can be downloaded either [from OBIS](https://obis.org/dataset/2218a192-6760-4718-bb1f-0f9d827fa291) or [from GBIF](https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a). Both endpoints give the same dataset. Within the Darwin Core Archive are three files, `occurrence.txt` which provides information the occurrences and one absence of the barnacle, `events.txt` which provides information about every record and finally `extendedmeasurementorfact.txt` which provides information about the abundance of each occurrence.
+
+- **Modelling considerations**: Because the dataset documents occurrences of a single species, a compact modelling approach is enough to capture the information. The classes used are `dwc:Occurrence`, `dwc:Event`, and `dcterms:Location`. These classes capture the spatial, temporal, and taxonomic aspects of the records without introducing unnecessary complexity.
+
+- **Ontology subset considered**: The ontology subset used to model this dataset comprised of `dwc:Occurrence`, `dwc:Event`, and `dcterms:Location`. The publication that collated the records was modelled as a `dcterms:BibliographicResource` and linked to occurrences and events using the object property `dwcdp:mentionedIn`.
+
+![Ontology subset for the solidobalanus dataset](images/subset/solidobalanus-small.png)
+
+- **Additions made**: The dataset, despite having three files, has less content than the original paper. The original paper provides textual descriptions of the locations, sometimes providing the event type. These were added back as `dwc:locationRemarks` values.
+
+Likewise, the paper also provided information about the substrate or the animals on which the barnacles were recorded. This information can be important to inform possible vectors of this barnacle, and were added back as `dwc:occurrenceRemarks`.
+
+- **Difficulties encountered**: As mentionned, the information contained in the `extendedmeasurementorfact.txt` table is simply the numeric values of the count of the barnacles at each event, when the values are not semiquantitative. Note that subevents are pooled to produce the final count value. The only thing added is the IRI from the NERC vocabulary for the concept of `count of individuals`, which is `<http://vocab.nerc.ac.uk/collection/P01/current/OCOUNT01>`.
+
+  I hesitated between whether to model this count value as a `dwc:Assertion` or not. The hesitancy was in large part to the fact that datatype properties, `dwc:organismQuantity` and `dwc:organismQuantityType`, to do this already exist. This means that providing the values `5` for `dwc:organismQuantity` and `individuals` for `dwc:organismQuantityType` would fill the same role as creating an instance of a `dwc:Assertion` for that same purpose.
+
+  However, I point out that there might be a valid reason to use this term, by pointing to the Broke-West fish dataset. Looking through the turtle file reveals this snippet:
+
+  ```turtle
+  <https://www.bioboum.ca/assertion/aav3ff-00248-stomach-136-rhincalanus-gigas-count> a dwc:Assertion ;
+    dwcdp:about <https://www.bioboum.ca/material/aav3ff-00248-stomach-136-rhincalanus-gigas> ;
+    dwcdp:assertionID "AAV3FF_00248_stomach_136_Rhincalanus gigas_count" ;
+    dwcdp:assertionType "individual count" ;
+    dwcdp:assertionValueNumeric 1.0 ;
+    dwcdp:materialEntityID "AAV3FF_00248_stomach_136_Rhincalanus gigas" .
+  ```
+
+  Which is a `dwc:Assertion` used to define the number of individuals of the copepod *Rhincalanus gigas*. However, in this case, it is allowed and necessary. The reason being that this `dwc:Assertion` is used here to describe the individual counts of organisms in a `dwc:MaterialEntity`, in this case the stomach content of an Antactic fish *Electrona antarctica*, and not a `dwc:Occurrence` as in the *Solidobalanus* dataset.
+
+- **Graph-based representation**: Given the small number of classes considered and their simple organization, the interpretation of the graph is straightforward. At the center of the graph is the scientific paper. The first ring around it are the `dwc:Occurrences` which are drawn to it because they are mentionned in the paper. The second ring consists of the `dwc:Events`, which despite being mentioned in the paper and drawn to it, are slightly more distant due to the fact that each event is connected to a `dcterms:Location`.
+
+![Directed graph for the solidobalanus dataset](images/complete/solidobalanus-directed-graph.png)
+
+- **Lessons learned**: When the barnacle was noted as being present on another organism and not on a substrate, an occurrence could have been created and linked to the barnacle occurrence through a `dwc:OrganismInteraction` instance. For example, consider the following line:
+
+| Date       | Location                | Number of *Solidobalanus* | Notes                         |
+|------------|-------------------------|---------------------------|-------------------------------|
+| 26-Jul-95  | trawl Bigbury Bay, 33 m | 4                         | 2 each on two *Maia squinado* |
+
+  This row could have converted into 2 separate instances of *Solidobalanus fallax*, each with `2` for `dwc:organismQuantity` and `individuals` for `dwc:organismQuantityType`, and two separate instances of spider crabs (*Maia squinado*), each with `1` for `dwc:organismQuantity` and `individuals` for `dwc:organismQuantityType`. The pairs of occurrences would be related through a `dwc:OrganismInteraction`, relating the fact that the barnacle was an epibiont on the spider crab.
+  
+  Though enticing, this becomes impossible for some rows such as:
+
+| Date       | Location             | Number of *Solidobalanus*  | Notes                                         |
+|------------|----------------------|----------------------------|-----------------------------------------------|
+| 29-Jun-95  | trawl off West Rutts | 14                         | on *Buccinum* shells inhabited by *Eupagurus* |
+  
+  In this case, we are incapable of doing the same exercise, as we do not know neither how many hermit crabs there are nor how the barnacles are spread.
+
+  However, the actual interest in this dataset was the following entry in table 1 of the paper that is quite original:
+
+| Date       | Location                           | Number of *Solidobalanus* | Notes                                  |
+|------------|------------------------------------|---------------------------|----------------------------------------|
+| 08-Nov-95  | dredge off Hillsea ('Stoke') Point | 1                         | on *Scalpellum* growing on *Eunicella* |
+
+Based on this entry, a single individual of *Solidobalanus* was observed on a goose barnacle (*Scalpellum*). However, this goose barnacle is itself noted as growing on a sea-fan (*Eunicella*). This means that there were two interactions between these three individuals. These types of interactions can represent an interesting modelling excercise.
+
+As suggested in the Darwin Core DataPackage explanations, `pairwise interactions must be used to represent multi-organism interactions`. As an exercise, this approach was taken, leading to the graph below:
+
+![Directed graph for the lanternfish dataset](images/subset/complex-1.png)
+
+In this case, the barnacle is on the bottom-left, the goose barnacle in the middle and the sea-fan on the top left. The pairs of `dwc:OrganismInteractions` describe successively the relationship between the three individuals.
+
+This exercise can be extended to consider a graph-based representation of the statement `In the scientific paper, it was mentionned that, during a dredge off Hillsea Point on the 8th of November 1995, 1 individual of Solidobalanus fallax was on Scalpellum growing on Eunicella`. This produced the graph below:
+
+![Directed graph for the lanternfish dataset](images/subset/complex-2.png)
+
+  Using, whenever possible real URLs, the statement can be encoded and shared as the following turtle file:
+
+```turtle
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+@prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://www.gbif.org/occurrence/4153002329> a dwc:Occurrence ;
+    dwc:occurrenceRemarks "on Scalpellum growing on Eunicella" ;
+    dwc:scientificName "Solidobalanus fallax" ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> ;
+    dwcdp:organismQuantity 1 ;
+    dwcdp:organismQuantityType "individuals" .
+
+<https://www.gbif.org/occurrence/4153002329-host1> a dwc:Occurrence ;
+    dwc:genus "Scalpellum" ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> .
+
+<https://www.gbif.org/occurrence/4153002329-host2> a dwc:Occurrence ;
+    dwc:genus "Eunicella" ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> .
+
+<http://bioboum.ca/organism-interaction/solidobalanus-on-scalpellum> a dwc:OrganismInteraction ;
+    dwc:organismInteractionType "was attached to" ;
+    dwcdp:happenedDuring <https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a/event/dasshdt00000144_013> ;
+    dwcdp:interactionBy <https://www.gbif.org/occurrence/4153002329> ;
+    dwcdp:interactionWith <https://www.gbif.org/occurrence/4153002329-host1> ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> .
+
+<http://bioboum.ca/organism-interaction/scalpellum-on-eunicella> a dwc:OrganismInteraction ;
+    dwc:organismInteractionType "was growing on" ;
+    dwcdp:happenedDuring <https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a/event/dasshdt00000144_013> ;
+    dwcdp:interactionBy <https://www.gbif.org/occurrence/4153002329-host1> ;
+    dwcdp:interactionWith <https://www.gbif.org/occurrence/4153002329-host2> ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> .
+
+<https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a/event/dasshdt00000144_013> a dwc:Event ;
+    dwc:eventDate "1995-11-08"^^xsd:date ;
+    dwc:eventType "dredge" ;
+    dwcdp:mentionedIn <https://doi.org/10.1017/S0025315404010616h> ;
+    dwcdp:spatialLocation <https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a/event/dasshdt00000144_013-loc> .
+
+<https://www.gbif.org/dataset/29e95cd7-4759-4aa7-bde0-8463118c873a/event/dasshdt00000144_013-loc> a dcterms:Location ;
+    dwc:coordinateUncertaintyInMeters 500.0 ;
+    dwc:decimalLatitude 50.288617 ;
+    dwc:decimalLongitude -4.045 ;
+    dwc:geodeticDatum "EPSG:4326" ;
+    dwc:locationRemarks "dredge off Hillsea ('Stoke') Point" .
+
+<https://doi.org/10.1017/S0025315404010616h> a dcterms:BibliographicResource ;
+    dc:title "Habitat and distribution of the warm-water barnacle Solidobalanus fallax (Crustacea: Cirripedia) records" ;
+    dcterms:issued "2004"^^xsd:gYear ;
+    bibo:pages "1169-1177" ;
+    bibo:volume "84" .
+```
+
 ### Turtle remote sensing dataset
 
 - **Dataset definition**: As part of the Marine Bioresource Conservation and Restoration Research project, a marine conservation initiative aimed at restoring ecosystem health through the protection and recovery of marine species, fifteen sea turtles were equipped with radio-transmitters. Their movements throughout the Western Pacific Ocean were monitored to inform species protection and habitat management strategies. The dataset spans October 2015 to October 2022. Although most tracks fall within the waters of South Korea and Japan, some individuals traveled as far as China and Vietnam.
