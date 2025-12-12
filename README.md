@@ -424,6 +424,52 @@ As a starting point, the following SPARQL query returns all body masses in the d
 
   This modelling approach supports richer biodiversity knowledge graphs: occurrences can be queried based on the material they were derived from, the molecular protocol used, or the sequencing results themselves. As a result, metabarcoding datasets become more reusable, interoperable, and semantically expressive.
 
+### Liloan reef monitoring
+
+- **Dataset definition**: To provide a baseline for the evaluation and implementation of reef conservation and management, a sampling campaign was conducted between 2015 and 2016 on Poblacion and Kadurong Reefs (Liloan, Philippines). The survey recorded multiple types of measurements, including physico-chemical variables (e.g., water quality), percent cover of benthic reef components, and occurrences of several biological communities. Sampled communities comprised phytoplankton, zooplankton, and fish.
+
+- **Dataset organization**: The dataset is available both [from GBIF](https://www.gbif.org/dataset/788eaed9-c607-4510-bd28-5db2ea598dc4) and [from OBIS](https://obis.org/dataset/16cbef75-11a1-47c7-84a8-172470203a68). Both endpoints deliver the same content.
+
+  The archive contains two tables: `occurrence.txt`, which documents species occurrences across all sampled communities, and `extendedmeasurementorfact.txt`, which records environmental variables measured at each site.
+
+- **Modelling considerations**: At first glance the modelling appears straightforward: site visits can be modelled as `dwc:Event` instances, species detections as `dwc:Occurrence` instances, and environmental variables as `dwc:Assertion` instances targeting events.
+
+  However, some practical questions arise due to how the sampling design is laid out:
+
+  - First, sampling sites differ by campaign. Phytoplankton and zooplankton were sampled with different net sizes but at the same points (S01–S20 for phytoplankton; and S01–S03 and S07–S09 for zooplankton), which correspond to the physico-chemical measurement points. Fish communities, however, were assessed at eight different transect points (T01–T08), which are a subset of transects used for benthic variables (T01–T10). Thus, planktonic and fish campaigns are distinct in sampling design and locations.
+
+  -  Second, the relationship between campaigns and events requires careful modelling. Although phytoplankton and zooplankton sampling overlapped at six sites, these campaigns are methodologically different and should not be naïvely modelled as simple sub-events of a single event. It would be preferable to represent each campaign as an `eco:Survey` that happened during the parent `dwc:Event`. This preserves conceptual coherence and avoids conflating sampling methods.
+
+  Modelling campaigns as `eco:Survey` instances also enables the use of `eco:SurveyTarget`, which provides a more detailed description of the campaign's scope and targets.
+
+- **Ontology subset considered**: The standard relationships among `dwc:Occurrence`, `dwc:Identification`, `dwc:Event`, and `dcterms:Location` are used. All environmental measurements are represented as `dwc:Assertion` instances targeting the relevant `dwc:Event`.
+
+  The main addition in this dataset is `eco:Survey`, which occurs within a `dwc:Event`. Each survey has an associated procedure and target definitions, modelled via `eco:SurveyTarget`. Every occurrence recorded in a survey can, usually, be interpreted as satisfying the survey's targets.
+
+![Ontology subset for the liloang dataset](images/subset/liloan-small.png)
+
+- **Additions made**: The `eco:Survey` and `eco:SurveyTarget` classes were introduced to represent the distinct sampling campaigns for each community. These were populated using methodological details from the dataset description and methodology.
+
+  A `dwc:Provenance` instance was created to capture data provenance and project metadata. The ASEAN Centre for Biodiversity, which published the dataset, was modelled as a `dcterms:Agent`.
+
+- **Difficulties encountered**: Despite the title `Sampling-event dataset of short-term monitoring of Poblacion and Kadurong Reefs in Liloan, Cebu, Philippines`, the archive functions as an occurrence dataset rather than an explicit sampling-event dataset. Events therefore had to be reconstructed from the informations in `occurrence.txt` and `extendedmeasurementorfact.txt`.
+
+  This reconstruction was facilitated by consistent occurrence identifiers of the form `{project}:{site}:{date}:{community}`, which can be parsed to recover events and targeted communities.
+
+  Another difficulty was present in `extendedmeasurementorfact.txt`. In this file, `dwc:measurementID` column does not provide unique identifiers for individual measurements but instead classifies measurements into the categories of `benthic` or `physicochemical`. The actual measurement identifiers were placed in `dwc:occurrenceID`, which in should link to `occurrence.txt` but in this case does not.
+
+- **Graph-based representation**: As expected from the modelling choices and the sampling outline, fish and plankton campaigns form distinct clusters. Fish assemblages and their transects are shown on the right side of the graph, whereas plankton assemblages and their sites appear on the left side of the graph. The two isolated clusters of `dwc:Assertion` nodes in the middle correspond to the two transect points where benthic variables were measured but no underwater visual census for fish was conducted (T09-T10).
+
+  Within each community cluster, `eco:SurveyTarget` nodes form the core, as all observed `dwc:Occurrence` instances satisfy these targets. The `eco:Survey` instances surround the targets because they are targets of said survey targets. The `dwc:Identification` nodes lie on the periphery, as they attach to specific occurrences.
+
+  The six `dwc:Event` instances where both phytoplankton and zooplankton were sampled create a bridge connecting the respective phytoplankton and zooplankton clusters.
+
+![Directed graph for the liloan dataset](images/complete/liloan-directed-graph.png)
+
+- **Lessons learned**: For well-designed field programs that deliberately include or exclude particular taxa or methods, `eco:Survey` and `eco:SurveyTarget` are valuable modelling primitives. They enable precise expression of the sampling plan and support interpretation of absences. That is to say whether a taxon was absent because it was truly absent or simply because it was outside of the considered scope.
+
+  When comparing campaigns across communities, these classes provide a clean mechanism to relate each campaign to its sampled sites and to document methodological differences.
+
 ### Ryukyu Islands reef media
 
 - **Dataset definition**: Along the coral reefs of the Ryukyu Islands (Japan), the Global Oceanographic Data Center (GODAC) collected images and videos of marine organisms using a remotely operated underwater vehicle. Organisms visible in these media were later identified, and biological occurrence records were generated based on the geographic location at which each photograph or video was captured. Identifications were based on Japanese vernacular names and, when identifications required additional clarification, relevant taxonomic literature was consulted.
