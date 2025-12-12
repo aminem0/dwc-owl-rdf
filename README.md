@@ -238,6 +238,52 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   Blank nodes should be used sparingly because they limit interoperability, as they cannot be referred to outside of the considered graph. However, in cases like this, where the existence of an entity without a persistent ID is necessary to the correct interpretation of the data, they are appropriate and semantically meaningful.
 
+### Kalimantan odonata survey
+
+- **Dataset definition**: To characterize Odonata communities across mixed-mosaic heath (kerangas) forests, a survey was conducted in the habitats of the Mungku Baru Education Forest in Central Kalimantan, Indonesia. Fieldwork occurred between November 2019 and February 2020 as part of a broader biodiversity conservation program. The sampling design consisted of 250-m line transects surveyed across three habitat types: kerangas, low pole peat swamp, and mixed swamp forest. Each habitat contained two transects, and each transect was assessed eight times.
+
+- **Dataset organization**: The dataset, published as a Darwin Core Archive, can be downloaded [from GBIF](https://www.gbif.org/dataset/861c1ecb-764b-4d89-864b-b913a58fae0a).
+
+  The archive contains a single file, `occurrence.txt`, which amalgamates all information relating to the project. No extensions are provided. As discussed below, this has consequences for data modelling, as multiple types of entities are embedded within the same table and sometimes condensed into JSON strings.
+
+- **Modelling considerations**: Because all content is folded into a single table, including several JSON-encoded fields, individual instances of the relevant classes had to be explicitly created to distinguish the different types of information.
+
+  The hierarchical structure of the sampling design was preserved using three levels of `dwc:Event`. The topmost level is the habitat, within which the transect level assessments happen. The second level is that of the assessments of the line-transects. This is what is explicitely stated in the documentation.
+
+  However, it is implied that each Odonata sighting represents an event as well, with its own associated assertions. Consequently, a third level of `dwc:Event` was modelled to take into account this hierarchy.
+
+- **Ontology subset considered**: The standard classes and their relationships relationships between `dwc:Occurrence`, `dwc:Identification`, `dwc:Event` and `dcterms:Location` were considered. Note that, in this case, the three levels of `dwc:Events` are considered by the self-referencing arrow of the object property `dwcdp:happenedDuring`.
+
+  The two different types of `dwc:Assertions`, those that target `dwc:Occurrences` and those that target `dwc:Events` use the same object property `dwcdp:about` and are distinguished only by their range. This is shown by the two different arrows stemming from `dwc:Assertions`.
+
+  The sampling survey brings terms from the `eco:` namespace, so as to detail how the survey was carried out and what were its targets. The `eco:Survey` and `eco:SurveyTarget` allow for a detailed definition of the events and the survey that was carried out, and separates the considered entities.
+
+![Ontology subset for the kalimantan dataset](images/subset/kalimantan-small.png)
+
+- **Additions made**: To detail how the sampling was carried out and the target taxonomic scope considered, instances of `eco:Survey` and `eco:SurveyTarget` were created to represent the sampling methodology. In this case, the survey target is quite simple, as it is a definition of `all adult Odonata`.
+
+- **Difficulties encountered**: Though the data were well detailed and provided in a machine-readable JSON format, there were a few points that proved to be challenges
+
+  1. Theoretically, it provided a challenge regarding how to model `dwc:Events`. The main reason is that a value of `dwc:eventID` is provided, following the pattern `<bnf:odo:khdtk:transect:{parent-event}:event:{event-number}>` and defines a survey along a transect line. Also provided is a value for `dwc:parentEventID`, which is of the pattern `<bnf:odo:khdtk:parvent:{habitat-code}{number}>`, where the habitat code is `K` for kerangas, `LP` for low pole peat swamps and `R` for riverine mixed peat swamp. This value is essentially information about the habitat and transect number.
+
+  The issue is that, in the methodology, it is stated that `[e]nvironmental data [...] were recorded at each capture location within a 5 m diameter of the sight of capture`. These environmental data are what make up the `dwc:dynamicProperties` values. However, this means that there should be another layer that should be considered, as every Odonata that entered the line of sight of the researcher should represent a `dwc:Event`, which has `dwc:Assertions` about it, being the `dwc:dynamicProperties`. Therefore, there should be three levels of event: Odonata visual sighting - survey - habitat.
+
+  2. Everything is mixed in one file conflation. The dataset is published using the occurrence core. However, there are no extensions and everything is contained in the `occurrence.txt` file. Thankfully, the information is in a machine-readable JSON format, which facilitates the creation of `dwc:Assertions`. However, both the environmental data and the organism measurements would have been better provided as an `extendedmeasurementorfact.txt` file.
+  
+  3. As a consequence of the last point, the information is sometimes supplied in different entries than would be expected. For example, environmental variables measured at each sighting of an Odonata are provided in `dwc:dynamicProperties`, whereas `dwc:eventRemarks` also contains free-form text reporting the weather at each event. Likewise, measurements about each occurrence are provided in the `dwc:taxonRemarks` instead of `dwc:occurrenceRemarks`, which is where they should be. Instead `dwc:occurrenceRemarks` contains free-form text about the behavior of the organism at the time of sighting and `dwc:OrganismRemarks` contains morphological, rather than morphometric, information about the occurrence. From the latter, possibly more `dwc:Assertions` could be extracted.
+
+  4. Given the fact that only an `occurrence.txt` file was used, only information about occurrences can be entered. However, looking at the `dwc:eventID` values, one finds 43 individual values, whereas 48 are to be expected (3 habitats, 3 line transects, 8 assessments). There is the possibility that the events could not take place due to weather events, as there is an entry of `As a result of heavy rains transect could not be continued`. However, it is also quite likely that these events actually did take place, but that no Odonata were recorded. This information could have been conveyed by using an `event.txt` extension.
+
+- **Graph-based representation**: The center of the graph is made up of the only `eco:SurveyTarget`, which defines the adult Odonata that were targeted by the study. As it is the target for all `eco:Surveys` conducted and that all `dwc:Occurrences` satisfy this target, these are drawn to it and close to the center. As all occurrences are around the center, the first ring of `dwc:Assertions` are occurrence assertions about these occurrences, and are the measurements of each Odonata.
+
+  The `dwc:Events` are connected to the occurrences and the surveys, placing them further from the center. This is also why the assertions that make up the outer ring of `dwc:Assetions` are event assertions about these events, and are the environmental variables measured after making visual contact with each Odonata.
+
+![Directed graph for the kalimantan dataset](images/complete/kalimantan-directed-graph.png)
+
+- **Lessons learned**: This dataset illustrates the challenges of representing complex hierarchical sampling designs in a flat tabular format. Although the use of parseable JSON is commendable, RDF provides a much clearer and more explicit representation, separating entities cleanly and enabling correct nesting of events.
+
+  The study also highlights the practical difficulties of encoding rich methodological detail within the constraints of a single file. In contrast, graph-based modelling naturally separates entities and accommodates more complex sampling considerations, such as multi-level event hierarchies.
+
 ### Lake Mburo Park rodents
 
 - **Dataset definition**: In 2005, an experimental setup was conducted to assess the factors affecting small mammal communities in African savannahs in Lake Mburo National Park, Uganda. Four treatments were considered based on two factors. The first factor is whether the plot showed large vegetated *Macrotermes* termite mounds or was in adjacent savannah areas. The second factor is the presence or absence of large-herbivore grazing. Large grazing mammals were excluded by erecting a 2-m high fence to prevent their entry and grazing. Each combination was replicated three times. Rodents were trapped using live traps placed in the plots, captured individuals were identified, sexed, and measured.
