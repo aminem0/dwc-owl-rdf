@@ -238,6 +238,150 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   Blank nodes should be used sparingly because they limit interoperability, as they cannot be referred to outside of the considered graph. However, in cases like this, where the existence of an entity without a persistent ID is necessary to the correct interpretation of the data, they are appropriate and semantically meaningful.
 
+### Lake Mburo Park rodents
+
+- **Dataset definition**: In 2005, an experimental setup was conducted to assess the factors affecting small mammal communities in African savannahs in Lake Mburo National Park, Uganda. Four treatments were considered based on two factors. The first factor is whether the plot showed large vegetated *Macrotermes* termite mounds or was in adjacent savannah areas. The second factor is the presence or absence of large-herbivore grazing. Large grazing mammals were excluded by erecting a 2-m high fence to prevent their entry and grazing. Each combination was replicated three times. Rodents were trapped using live traps placed in the plots, captured individuals were identified, sexed, and measured.
+
+- **Dataset organization**: The dataset, as a Darwin Core Archive can be downloaded [from GBIF](https://www.gbif.org/dataset/9e54a9c3-98cf-438d-bdf2-89358b647ffa). The archive contains an `occurrence.txt` table that records each rodent capture and an `extendedmeasurementorfact.txt` table that records each measurement taken on the individual rodents.
+
+- **Ontology subset considered**: The relationships between classes in this dataset are relatively straightforward. Every captured rodent is modelled as a dwc:Occurrence of a `dwc:Organism`. Every measurement was modelled as a `dwc:Assertion` targeting the individual rodent.
+
+  Each rodent capture represents a separate `dwc:Event`. However, as traps were left at the same spot, all captures in that trap share the same `dcterms:Location`.
+
+![Ontology subset for the rodent dataset](images/subset/rodent-small.png)
+
+- **Additions made**: Each measurement was described more thoroughly by providing IRIs for the type of measurement, the value (if non-numeric), and the units considered. This approach enables entirely machine-readable data. For these cases, the Ontology of Biological Attributes (OBA), the Phenotype And Trait Ontology (PATO), and the Unit Ontology (UO) were used.
+
+  According to the research paper, identifications were based on the book `The Rodents of Uganda`. Consequently, as for the Ryukyu media dataset, the book was modelled as a `dcterms:BibliographicResource` using its ISBN-13 number as an identifier.
+
+- **Difficulties encountered**: The paper mentions that recaptures occurred and that individuals were marked with paint upon capture to allow identification of recaptures. Table 1 in the paper also shows that some individuals were indeed recaptured. However, the UUIDs in the Darwin Core Archive are provided per `dwc:Occurrence` only, and there is no organism-level identifier in either table. Consequently, unless recapture information was preserved in another file, it is lost.
+
+  Six records of the woodland dormouse (*Graphiurus murinus*) have their `dwc:scientificName` incorrectly entered as *Graohiurus murinus*. This leads to incorrect total counts for this species.
+
+  It should be noted that, even after these corrections, there are slight discrepancies between the values reported in the paper and those in the Darwin Core Archive. For a few rarer species, counts do not match perfectly. Additional reidentifications might have been carried out after the publication of the research paper.
+
+  String casing proved to be an issue for several of the entries. Some nodes received multiple entries for a term simply because it was written with different casings. This is especially important, as the replicate and treatement factor are used for the `dwc:localID` in the pattern `{replicate}-{vegetation level} {grazing level}`. Consequently, values of `dwc:localID` were lowercased and values of `dwc:locality` were title-cased to avoid considering `Mound fenced` and `Mound Fenced` as different levels or `Sanga Gate` and `Sanga gate` as separate localities.
+
+- **Graph-based representation**: At the center of the graph are two entities: the `dcterms:Location` nodes representing trap locations and the `dcterms:BibliographicResource` representing the identification reference. The identification reference aggregates all `dwc:Identification` nodes and the set of locations aggregates the `dwc:Event` nodes, creating the compact core.
+
+  Surrounding the core is an outer ring of `dwc:Occurrence` nodes, which are related to events via `dwcdp:happenedDuring` and to identifications via `dwcdp:basedOn`. This forms the first outer ring.
+
+  Finally, every occurrence is an occurrence of an individual `dwc:Organism` that has a set of `dwc:Assertion` instances about it. This produces the more diffuse outer ring, since each individual has multiple assertions.
+
+![Directed graph for the rodent dataset](images/complete/rodent-directed-graph.png)
+
+- **Lessons learned**: The end goal of data annotation is not only archival but also reuse. This dataset was used to evaluate how easily information can be extracted once the data are loaded into a triplestore.
+
+As a starting point, the following SPARQL query returns all body masses in the dataset that are expressed in grams:
+
+  ```sparql
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+
+  SELECT ?bodyMass
+
+  WHERE {
+    ?trait a dwc:Assertion ;
+           dwc:assertionTypeIRI <http://purl.obolibrary.org/obo/OBA_VT0001259> ;
+           dwc:assertionUnitIRI <http://purl.obolibrary.org/obo/UO_0000021> ;
+           dwc:assertionValueNumeric ?bodyMass .
+  }
+  ```
+
+  The query is deliberately simple, as it uses a single namespace and a single entity. The use of IRIs for assertion types and units prevents textual variation issues due to how the term is expressed (e.g., `body mass`, `bmass`, `b. mass`, `bodyMass`).
+
+  The SPARQL query may be refined to include the species of the organism on which the measurement was made. This requires the use of object properties and introduces ontological considerations. To obtain body mass values in grams together with the scientific name of the organism on which it was measured, the following query can be executed:
+  
+  ```sparql
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+  PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+  SELECT ?species ?bodyMass
+
+  WHERE {
+    ?trait a dwc:Assertion ;
+           dwc:assertionTypeIRI <http://purl.obolibrary.org/obo/OBA_VT0001259> ;
+           dwc:assertionUnitIRI <http://purl.obolibrary.org/obo/UO_0000021> ;
+           dwc:assertionValueNumeric ?bodyMass ;
+           dwcdp:about ?org .
+
+    ?org a dwc:Organism ;
+         ^dwcdp:occurrenceOf ?occ .
+
+    ?occ a dwc:Occurrence ;
+         dwcdp:happenedDuring ?event .
+
+    ?ident a dwc:Identification ;
+           dwcdp:basedOn ?occ ;
+           dwc:scientificName ?species .
+  }
+```
+
+  Note the addition of the `dwcdp:` prefix to reference object properties and the use of the inverse property `^dwcdp:occurrenceOf` to navigate from a `dwc:Organism` to its `dwc:Occurrence`. Equivalent formulations include moving the `dwcdp:occurrenceOf` triple into the occurrence block (and keeping the original directionality as `?occ dwcdp:occurrenceOf ?org`) or defining explicit inverse properties (as in Darwin-SW, which uses the pair `dsw:occurrenceOf` and `dsw:hasOccurrence`). Each option has merits and requires further discussion.
+
+  Finally, the SPARQL query can be expanded to compute the average body mass and the number of observations within each treatment group. This requires aggregate functions `AVG()` and `COUNT()` to get the values, as well `GROUP BY` and `ORDER BY` to arrange results. The following query computes these values for the two most frequent species, Kaiser's rock rat (*Aethomys kaiseri*) and the African pygmy mouse (*Mus minutoides*):
+
+  ```sparql
+  PREFIX dcterms: <http://purl.org/dc/terms/>
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+  PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+  SELECT ?species ?treatmentType (AVG(?bodyMass) AS ?meanBodyMass) (COUNT(?bodyMass) AS ?nObs)
+
+  WHERE {
+    ?trait a dwc:Assertion ;
+           dwc:assertionTypeIRI <http://purl.obolibrary.org/obo/OBA_VT0001259> ;
+           dwc:assertionUnitIRI <http://purl.obolibrary.org/obo/UO_0000021> ;
+           dwc:assertionValueNumeric ?bodyMass ;
+           dwcdp:about ?org .
+
+    ?org a dwc:Organism ;
+         ^dwcdp:occurrenceOf ?occ .
+
+    VALUES ?species { "Aethomys kaiseri" "Mus minutoides" }
+
+    ?ident a dwc:Identification ;
+           dwcdp:basedOn ?occ ;
+           dwc:scientificName ?species .
+
+    ?occ a dwc:Occurrence ;
+         dwcdp:happenedDuring ?event .
+
+    ?event a dwc:Event ;
+           dwcdp:spatialLocation ?location .
+
+    ?location a dcterms:Location ;
+              dwc:locationID ?locationID .
+
+    BIND(STRAFTER(?locationID, "-") AS ?treatmentType)
+  }
+
+  GROUP BY ?species ?treatmentType
+  ORDER BY ?species DESC(?meanBodyMass)
+```
+
+  The `VALUES ?species { "Aethomys kaiseri" "Mus minutoides" }` block restricts the query to those two species. Omitting it would compute aggregates for all species. The `STRAFTER()` function extracts the treatment type from the location identifier (e.g., yielding `mound unfenced` from `2-mound unfenced`).
+
+  The query produces the following table:
+
+| species            | treatementType    | meanBodyMass         | nObs |
+|--------------------|-------------------|----------------------|------|
+| *Aethomys kaiseri* | savannah fenced   | "90.31"^^xsd:decimal | 29   |
+| *Aethomys kaiseri* | mound unfenced    | "85.38"^^xsd:decimal | 106  |
+| *Aethomys kaiseri* | mound fenced      | "84.46"^^xsd:decimal | 197  |
+| *Aethomys kaiseri* | savannah unfenced | "65.50"^^xsd:decimal | 6    |
+| *Mus minutoides*   | mound unfenced    | "7.62"^^xsd:decimal  | 107  |
+| *Mus minutoides*   | savannah fenced   | "7.31"^^xsd:decimal  | 132  |
+| *Mus minutoides*   | savannah unfenced | "7.12"^^xsd:decimal  | 71   |
+| *Mus minutoides*   | mound fenced      | "7.03"^^xsd:decimal  | 170  |
+
+  Several results can be derived from this output:
+
+  1. Kaiser's rock rat exhibits a substantially higher body mass than the African pygmy mouse, being approximately an order of magnitude heavier.
+  2. The effect of treatment differs by species. For Kaiser's rock rat there are notable differences in body mass among treatments, whereas for the African pygmy mouse differences are minor.
+  3. Treatment effects are not uniform. For example, in savannah environments the exclusion of large herbivores is associated with a substantial increase in body mass for Kaiser's rock rat. However, no noticeable difference can be seen in the mound environments.
+
+  In conclusion, ontological construction is a challenging process. It requires consideration of how best to express entities and their relationships while facilitating querying and reuse.
+
 ### Lanternfish gut metabarcoding
 
 - **Dataset definition**: During the 2nd International Indian Ocean Expedition (May–June 2019), aboard the RV Investigator, juvenile lanternfish (*Hygophum*) were sampled in the Indian Ocean. Their gut contents and gut lining were analyzed using DNA metabarcoding following several protocols. The protocols compared included the Nanopore MinION and Illumina MiSeq sequencing platforms, as well as three primer sets: COI "Leray", 18S rRNA V4 "Zhan", and COI "Lobo". The resulting nucleotide sequences were submitted to BLASTN (blastn 2.12.0, e-value cutoff = 0.001, percent identity ≥ 80%) to evaluate the diet of these fishes.
