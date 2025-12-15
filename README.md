@@ -86,7 +86,7 @@ Each dataset will therefore be described according to the following structure:
     - The contribution to the bibliographic resource might need to be more detailed. For example, the property `dwc:agentRoleOrder` allows the consideration of the author order in a group of authors. A similar approach can consider RDF lists, but would require consideration of all authors to preserve numerical order.
     - The relationship between two `dcterms:Agents` needs to be more defined. For example, one agent might be a researcher, and another might be an institution. The relationship might be more fleshed out through roles and periods, through which the role was active.
 
-  If both possibilities are considered (i.e. allowing `dcterms:Agent` to represent both individual authors and groups of authors), users should be made aware of it so as to not hit a stumbling block during queries. Suppose that the triples were loaded into a triplestore and exposed through a SPAQL endpoint. The simple following SPARQL query which, for brevity's sake, considers property paths, can be used to make the matter clearer:
+  If both possibilities are considered (i.e. allowing `dcterms:Agent` to represent both individual authors and groups of authors), users should be made aware of it so as to not hit a stumbling block during queries. Suppose that the triples were loaded into a triplestore and exposed through a SPARQL endpoint. The simple following SPARQL query which, for brevity's sake, considers property paths, can be used to make the matter clearer:
 
   ```sparql
   PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -989,7 +989,7 @@ The crop-flower-visit dataset was originally published as an sampling event data
 
 ![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
 
-Extraction of this information and updating of the dataset using DwCDP terms and the DWC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on male Japanese persimmon trees (*Diospyros kaki*). Before, this would have required laborious regexing of the text. Consequently, the use of DwCDP terms and the DWC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
+Extraction of this information and updating of the dataset using DwC-DP terms and the DwC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on male Japanese persimmon trees (*Diospyros kaki*). Before, this would have required laborious regexing of the text. Consequently, the use of DwC-DP terms and the DwC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
 
 ## Smarter querying
 
