@@ -52,6 +52,231 @@ Each dataset will therefore be described according to the following structure:
 
 ## Real-world datasets
 
+### Broke-West fish
+
+- **Dataset definition**: During the the BROKE-west cruise of RV Aurora Australis from January 2nd to March 17th, 2006, fish were sampled in the CCAMLR subarea of the Antarctic coastline. Sampling was conducted using Rectangular Midwater Trawl (RMT) nets to target midwater fish. Two trawling methods were employed: target trawls directed at acoustically detected aggregations, and routine double oblique hauls from the surface down to 200 m and back. The study considers a variety of material entities derived from the caught fish, as well as media images of these entities.
+
+- **Dataset organization**: The dataset, as a Darwin Core DataPackage was obtained [from the GBIF test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish). The DataPackage contains 22 .csv files, corresponding to the different tables [based on the suggested DwCDP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql).
+
+- **Modelling considerations**: Although modelling this dataset requires a relatively high number of classes (fifteen), the overall approach is not particularly complex once the dataset structure is understood and have seen enough examples on this page. For instance, `dwc:Occurrences` take place within nested `dwc:Events`, which are conducted by `dcterms:Agents`. The relationships defined in the ontology closely mirror the structure of the dataset itself. This highlights evidenced by the thoughtful laying out of the tables and their relationships in the DwCDP model.
+
+  One modelling aspect that deserves special attention, and which will be discussed further in a subsequent section, is the handling of entries in the `agent-agent-role.csv` table. This table relates individual `dcterms:Agent` instances to another `dcterms:Agent` representing a collective or group. These group agents are then related to scientific publications, modelled as `dcterms:BibliographicResource`, via authorship relationships. While this approach is conceptually straightforward, it introduces additional complexity that may not always be necessary.
+
+  Because this table represents relationships between pairs of `rdfs:Resource` instances (or `owl:Thing`, depending on how you model it), `dwc:AgentAgentRole` class was treated here as a subclass of the more general `dwc:ResourceRelationship`. As such, it inherits properties from its parent class, while allowing additional properties to capture more specific information, such as author order within a publication.
+
+  Another modelling challenge concerns the representation of protocols associated with event assertions, material entities, and surveys. This is addressed by defining the range of the object property `dwcdp:follows` as `dwc:Protocol`, while allowing for a broad domain that includes `dwc:Assertion`, `dwc:MaterialEntity`, and `eco:Survey`.
+
+- **Ontology subset considered**: Compared to the other datasets examined, the Broke-West fish dataset requires a relatively large number of classes and a complex network of relationships. Nevertheless, the structure of these relationships remains conceptually straightforward.
+
+  Without exhaustively describing the entire graph, several notable features deserve mention:
+
+  - The instances of `dcterms:Agent` can play multiple roles, as reflected by the numerous relationships pointing toward them.
+  - Instances from several classes can be related to `dwc:Protocol` through the `dwcdp:follows` object property.
+  - Instances of `dwc:Event` can be nested within other `dwc:Event` instances via `dwcdp:happenedDuring`.
+  - `dwc:MaterialEntity` instances can themselves be derived from other `dwc:MaterialEntity` instances using the `dwcdp:derivedFrom` object property.
+
+![Ontology subset for the broke dataset](images/subset/broke-small.png)
+
+- **Additions made**: Given the level of documenting of the dataset, no considerable additions were made. The researcher Yi-Ming Gan, who provided metadata for the currently up to 18 versions of the dataset on the test IPT was modeled as a `dcterms:Agent` and added to the dataset as a metadata provider.
+
+- **Difficulties encountered**: The dataset is exceptionally well annotated: IRIs are provided for nearly every measurement, and all fields are carefully documented. Nevertheless, four specific issues were identified during modelling:
+
+  2. The `agent-agent-role.txt` table was also a bit of an issue to deal with. Indeed, there is already the object property `dwcdp:authoredBy`, which is a subproperty of `dcterms:creator` to link bibliographic resources to their authors. Consequently, consideration of such a concept seemed like a making the relationship between authors and bibliographic resource more complex. Likewise, no such approach can be taken if the bibliographic resource considers a single author. However, such an approach can have its merit if:
+
+    - The contribution to the bibliographic resource might need to be more detailed. For example, the property `dwc:agentRoleOrder` allows the consideration of the author order in a group of authors. A similar approach can consider RDF lists, but would require consideration of all authors to preserve numerical order.
+    - The relationship between two `dcterms:Agents` needs to be more defined. For example, one agent might be a researcher, and another might be an institution. The relationship might be more fleshed out through roles and periods, through which the role was active.
+
+  If both possibilities are considered (i.e. allowing `dcterms:Agent` to represent both individual authors and groups of authors), users should be made aware of it so as to not hit a stumbling block during queries. Suppose that the triples were loaded into a triplestore and exposed through a SPAQL endpoint. The simple following SPARQL query which, for brevity's sake, considers property paths, can be used to make the matter clearer:
+
+  ```sparql
+  PREFIX dcterms: <http://purl.org/dc/terms/>
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+  PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+  
+  SELECT ?occ
+  
+  WHERE {
+    ?occ a dwc:Occurrence ;
+         dwcdp:happenedDuring/^dwcdp:happenedDuring/dwcdp:followed/dwcdp:mentionedIn ?bib .
+  
+      ?bib a dcterms:BibliographicResource ;
+           dwcdp:authoredBy <https://orcid.org/0000-0002-2042-5095> .
+  }
+  ```
+
+  Where `<https://orcid.org/0000-0002-2042-5095>` is the ORCiD ID of Kawaguchi So, the principal author of the protocol used for the surveys in the study. This query should return all occurrences that followed a `dwc:Protocol` that was mentioned in a `dcterms:BibliographicResource` authored by So Kawaguchi. Surprisingly, this query will come up empty, because he is not the author of his own paper. To be technical, the group of authors, modeled as a `dcterms:Agent`, of which he is part of, is the actual author. This can be seen in the following query, which successfully retrieves the data:
+
+  ```sparql
+  PREFIX dcterms: <http://purl.org/dc/terms/>
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+  PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+  
+  SELECT ?occ
+  
+  WHERE {
+    ?occ a dwc:Occurrence ;
+         dwcdp:happenedDuring/^dwcdp:happenedDuring/dwcdp:followed/dwcdp:mentionedIn ?bib .
+  
+    ?bib a dcterms:BibliographicResource ;
+         dwcdp:authoredBy ?agentG .
+      
+    ?agentG a dcterms:Agent ;
+            ^dwcdp:relationshipWith ?aARole .
+            
+    ?aARole a dwc:AgentAgentRole ;
+            dwc:relationshipOfResource "isPartOf" ;
+            dwcdp:relationshipBy <https://orcid.org/0000-0002-2042-5095> .
+  }
+  ```
+
+  This query succeeds because it does not ask for a bibliographic resource where Kawaguchi So is the author, but rather for those where he is part of the agent that is the author. Note that, there is a quicker way to write the query, once again using property paths, which would link the bibliographic resource to Kawaguchi So as `dwcdp:authoredBy/^dwcdp:relationshipWith/dwcdp:relationshipBy <https://orcid.org/0000-0002-2042-5095> .`. However, the risk of proceeding in this manner is that it would return data irrespective of the relationship Kawaguchi So has with regards to the author group (e.g. he might be a role not directly involved with authorship).
+
+  Finally, note that, if both paths are allowed for data entry, a safer way to query the triplestore would be:
+
+  ```sparql
+  PREFIX dcterms: <http://purl.org/dc/terms/>
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+  PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+  SELECT ?occ
+
+  WHERE {
+        ?occ a dwc:Occurrence ;
+           dwcdp:happenedDuring/^dwcdp:happenedDuring/dwcdp:followed/dwcdp:mentionedIn ?bib .
+ 
+    {
+      ?bib a dcterms:BibliographicResource ;
+           dwcdp:authoredBy <https://orcid.org/0000-0002-2042-5095> .
+    }
+    UNION
+    {
+      ?bib a dcterms:BibliographicResource ;
+           dwcdp:authoredBy ?agentG .
+
+      ?agentG a dcterms:Agent ;
+              ^dwcdp:relationshipWith ?aARole .
+  
+      ?aARole a dwc:AgentAgentRole ;
+               dwc:relationshipOfResource "isPartOf" ;
+               dwcdp:relationshipBy <https://orcid.org/0000-0002-2042-5095> .
+    }
+  }
+  ```
+
+  This query requests the same data, but for either a bibliographic resource where Kawaguchi So is the author OR by a group of authors of which he is part of. The joy of SPARQL.
+
+  2. The term of `eco:SurveyTarget` is very recent, having been proposed along with the DwCDP publishing model. It plays a role similar to the existing terms of `eco:targetDegreeOfEstablishmentScope`, `eco:targetGrowthFormScope`, `eco:targetHabitatScope`, `eco:targetLifeStageScope` and `eco:targetTaxonomicScope` in the Humboldt Extension Vocabulary. However, in this case, the use of the terms `eco:surveyTargetType`, `eco:surveyTargetValue` and possibly `eco:surveyTargetUnit` allow for a more detailed definition of the survey target of a study. For example, a survey target may be defined in terms of body size, which was not considered in the previous terms.
+
+  This brings the issue of the following two nodes:
+
+  ```turtle
+  <https://bioboum.ca/survey-target/broke-west-rmt-003-rmt8-234582> a eco:SurveyTarget ;
+      dwcdp:surveyID "BROKE_WEST_RMT_003_RMT8" ;
+      dwcdp:surveyTargetID "BROKE_WEST_RMT_003_RMT8_234582" ;
+      dwcdp:targetFor <https://www.bioboum.ca/survey/broke-west-rmt-003-rmt8> ;
+      bb:hasDefinition [ dcterms:type dwc:taxon ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "taxon" ;
+              eco:surveyTargetTypeIRI dwc:taxon ;
+              eco:surveyTargetValue "Chionodraco" ;
+             eco:surveyTargetValueIRI <urn:lsid:marinespecies.org:taxname:234582> ],
+          [ dcterms:type dwc:taxonRank ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "taxonRank" ;
+              eco:surveyTargetTypeIRI dwc:taxonRank ;
+              eco:surveyTargetValue "Genus" ;
+              eco:surveyTargetValueIRI dwc:genus ],
+          [ dcterms:type <http://vocab.nerc.ac.uk/collection/P01/current/OBSMINLX/> ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "minimum body size" ;
+              eco:surveyTargetTypeIRI <http://vocab.nerc.ac.uk/collection/P01/current/OBSMINLX/> ;
+              eco:surveyTargetUnit "mm" ;
+              eco:surveyTargetUnitIRI <http://vocab.nerc.ac.uk/collection/P06/current/UXMM/> ;
+              eco:surveyTargetValue "0.85" ],
+          [ dcterms:type <http://vocab.nerc.ac.uk/collection/P01/current/OBSMAXLX/> ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "maximum body size" ;
+              eco:surveyTargetTypeIRI <http://vocab.nerc.ac.uk/collection/P01/current/OBSMAXLX/> ;
+              eco:surveyTargetUnit "m" ;
+              eco:surveyTargetUnitIRI <http://vocab.nerc.ac.uk/collection/P06/current/ULAA/> ;
+              eco:surveyTargetValue "3" ] .
+
+  <https://bioboum.ca/survey-target/broke-west-rmt-016-rmt8-234582> a eco:SurveyTarget ;
+      dwcdp:surveyID "BROKE_WEST_RMT_016_RMT8" ;
+      dwcdp:surveyTargetID "BROKE_WEST_RMT_016_RMT8_234582" ;
+      dwcdp:targetFor <https://www.bioboum.ca/survey/broke-west-rmt-016-rmt8> ;
+      bb:hasDefinition [ dcterms:type <http://vocab.nerc.ac.uk/collection/P01/current/OBSMINLX/> ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "minimum body size" ;
+              eco:surveyTargetTypeIRI <http://vocab.nerc.ac.uk/collection/P01/current/OBSMINLX/> ;
+              eco:surveyTargetUnit "mm" ;
+              eco:surveyTargetUnitIRI <http://vocab.nerc.ac.uk/collection/P06/current/UXMM/> ;
+              eco:surveyTargetValue "0.85" ],
+          [ dcterms:type dwc:taxon ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "taxon" ;
+              eco:surveyTargetTypeIRI dwc:taxon ;
+              eco:surveyTargetValue "Chionodraco" ;
+              eco:surveyTargetValueIRI <urn:lsid:marinespecies.org:taxname:234582> ],
+          [ dcterms:type dwc:taxonRank ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "taxonRank" ;
+              eco:surveyTargetTypeIRI dwc:taxonRank ;
+              eco:surveyTargetValue "Genus" ;
+              eco:surveyTargetValueIRI dwc:genus ],
+          [ dcterms:type <http://vocab.nerc.ac.uk/collection/P01/current/OBSMAXLX/> ;
+              eco:includeOrExclude "include" ;
+              eco:isSurveyTargetFullyReported true ;
+              eco:surveyTargetType "maximum body size" ;
+              eco:surveyTargetTypeIRI <http://vocab.nerc.ac.uk/collection/P01/current/OBSMAXLX/> ;
+              eco:surveyTargetUnit "m" ;
+              eco:surveyTargetUnitIRI <http://vocab.nerc.ac.uk/collection/P06/current/ULAA/> ;
+              eco:surveyTargetValue "3" ] .
+  ```
+
+  Taking into account the fact that the order of the blank nodes do not matter, both nodes are identical with regards to their definition of the survey target. Both of these survey targets correspond to `consider every organism that belongs to the genus Chionodraco and whose body size falls between 0.85 mm and 3 m`. The only noticeable differences are their URIs and the URI of the `eco:Survey` they are a target for. However, seeing as they are the same target, fusioning these two nodes might be considered, so as to reduce the number of repetitive `eco:SurveyTarget` nodes.
+
+  3. A total of six protols are given in the `protocol.csv` table, `ctd`, `dry_mass_and_energy_content`, `light_conditions` `RMT_Routine`, `RMT_Target`, `stomach_content`. Accordingly, each was modeled as a `dwc:Protocol` with corresponding entries. However, only two, `ctd` and `light_conditions` are directly referenced by their protocolID in the tables.
+
+  For `dry_mass_and_energy_content`, there should have been columns for `assertionProtocols` and `assertionProtocolID` to link it back to this protocol in the `material-assertion.csv` table. This approach was taken, by adding entries for these fields when the entry for `dwc:assertionType` was `Energy Content Dry Weight`.
+
+  For `stomach_content`, the issue approach would have been different. In this case, [based on the suggested DwCDP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql), a junction table of `material_protocol` would need to be created, joining entries from both tables. In the case of this dataset, when the entry for `materialEntityType` contained the string `stomachContent`, a relationship to the corresponding protocol was established. Note that this will also consider all minor variations (to the best of my knowledge), such as `stomachContent - mucus`, `stomachContent - st wall` or `stomachContent - facet eye`.
+
+  The same issue came up for `RMT_Target` and `RMT_Routine`, where a junction table of `survey_protocol` would need to be considered. In this case, `dwcdp:follows` was used to relate the `eco:Survey` to the `dwc:Protocol` of `RMT_Routine` whenever the value of `eco:protocolNames` corresponded to `Pre-planned routine hauls with standard double oblique tow` and to `RMT_Target` whenever the value corresponded to `target trawls on acoustically detected aggregations`.
+
+  4. Though minor, it should be noted that one instance of `dwc:MaterialEntity`, whose corresponding `dwc:materialEntityID` value is `AAV3FF_00261` has the entry of `?` for `dwc:preparations`. It is a preserved whole organism of *Gymnodraco acuticeps*. The use of the question mark is not so much the issue, but does indicate that preservation methods are unknown. The actual issue is that this same material entity has a corresponding entry in the `material-assertion.txt` table with a blank cell. Blindly considering it in RDF would lead to the following node:
+
+  ```turtle
+  <https://bioboum.ca/material-assertion/aav3ff-00261-presrvation> a dwc:Assertion ;
+      dwcdp:about <https://bioboum.ca/material-entity/aav3ff-00261> ;
+      dwc:assertionID "AAV3FF_00261_presrvation" ;
+      dwc:assertionType "Preservation Method" ;
+      dwc:materialEntityID "AAV3FF_00261" .
+  ```
+
+  If we were to enforce a contraint that every value of `dwc:assertionType` must have an accompanying value of `dwc:assertionValue` (and vice-versa), then this node would not pass this constraint. If the preservation is unknown, it would be best to remove it. In the analysis, the entry in `material.txt` and corresponding the row in `material-assertion` have been removed.
+
+- **Graph-based representation**: The graph seems to be separated between to sections, with clusters of nodes on the sides, giving it the appearance of a creature like a sea-angel, intersting considering the dataset.
+
+  The "head" part consists essentially of `dwc:Assertions` about `dwc:Events`. More specifically, these are the assertions that followed two particular protocols, `ctd` and `light_conditions`. This has the effect of pulling the `dwc:Events` upwards, which is also shown by the fact that the node for the parent event of the entire cruise and of the `dcterms:Agent` responsible for conducting the eventh (the RV Aurora Australis) are in the "neck" region.
+
+  The "torso" part is centered around a `dcterms:Agent` node, representing the researcher Anton Van de Putte. The reason behind this is that he is credited with carrying out the sampling in the surveys, carrying out recording and identifications of the occurrences, as well as the collections and identifications of the material entities.
+
+  The "tail" part is made up of an `dwc:Occurrence` and a `dwc:Protocol` node. These correspond to an occurrence of *Pleurogramma antarcticum* with a `dwc:occurrenceID` of `BROKE_WEST_RMT_022_RMT8_234721`. The reason behind this is that this occurrence consists of 94 individuals, all of which were preserved through various methods, becoming `dwc:MaterialEntities`.
+
+  Finally, the "arms" are `eco:Survey` instances, with their associated `eco:SurveyTargets`. These relate to the `dwc:Events` during which the surveys take place and the `dwc:Occurrences` that satisfy the survey targets.
+
+![Directed graph for the broke dataset](images/complete/broke-directed-graph.png)
+
+- **Lessons learned**: This dataset demonstrates how fully leveraging the DwC-DP model enables a rich, standardized, and explicit description of how data were generated. While the resulting model is complex, it is also complete, reducing reliance on external documentation such as README files and facilitating direct reuse through structured querying.
+
 ### Colombia bird ringing
 
 - **Dataset definition**: As part of SELVA's Migration Ecology research program to study the ecology of migratory birds across ten departments in Colombia, a set of mist nets were set up across Colombia to study wild birds. This study would enable a better understanding of bird patterns, especially at stopover sites and for key conservation species such as the cerulean warbler (*Setophaga cerulea*) and the blackpoll warbler (*Setophaga striata*). Between 2018 and 2023, a total of 5 581 birds were recorded, banded and had measurements taken before being released into the wild.
@@ -735,14 +960,6 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
 - **Lessons learned**: Individual movement data map naturally to the DwC-OWL ontology when each tracked animal is represented as its own instance of `dwc:Organism`. These data will become increasingly important as global networks, such as [Move-BON](https://geobon.org/move-bon/), expand efforts to standardize, aggregate, and share animal tracking information.
 
-
-
-### Broke-West fish
-
-Whereas the Viridian forest survey dataset contained `251` triples, the Broke-West fish dataset contains `173 062` triples and considers more classes. Despite this, the same underlying logic can be applied to obtain a directional graph as well, which faithfully describes the dataset.
-
-![Directed graph of the Broke-West fish dataset](images/broke-directed-graph.png)
-
 ### Insektmobilen
 
 The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of `dwc:Identifications` correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
@@ -761,11 +978,6 @@ The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF transla
 
 ![Directed graph of the NMNH paleobiology dataset](images/nmnh-directed-graph.png)
 
-### Aulavik lemming nests
-
-In the case of the lemming nests dataset, consideration of a `dcterms:Location` entity was crucial, as it was the element tying all the yearly visits to the same plot. The data were modeled with a yearly count of nests being a `dwc:Event` and the nests themselves being `dwc:MaterialEntity` collected during said event. On that note, I would possibly like to consider an additional subproperty of `dwcdp:collectedDuring` to relate `dwc:MaterialEntities` to `dwc:Events`, possibly something like `dwcdp:notedDuring`, of which the former being a subproperty of the latter, indicating that the material entity was not only noted, but actually collected. If this material entity is present, then its instance is created and it becomes support for a `dwc:Occurrence` of lemmings on the parcel. The taxa considered here is lemmings, but such yearly visits are also considered for birds.
-
-![Directed graph of the aulavik-lemming-nests dataset](images/aulavik-directed-graph.png)
 
 ### Joseph Rock herbarium
 
