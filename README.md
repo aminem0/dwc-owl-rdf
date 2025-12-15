@@ -52,6 +52,52 @@ Each dataset will therefore be described according to the following structure:
 
 ## Real-world datasets
 
+### Aulavik lemming nests
+
+- **Dataset definition**: In order to monitor lemming populations in Arctic ecosystems, where they constitute a key food source for a wide range of predators, a long-term study of lemming abundance was conducted in Aulavik National Park, Canada. The study consists of annual counts of lemming nests at nine predetermined 1-hectare sampling plots within the park. Surveys were carried out each year in mid-July and span the period from 1999 through 2016.
+
+- **Dataset organization**: The data, as a .csv file was downloaded from the [Government of Canada website](https://open.canada.ca/data/en/dataset/23694c59-ceec-4042-9e23-370b82e792a2). It consists of a single .csv file (though other formats can be requested) containing yearly counts of lemming nests for each sampling plot.
+
+- **Modelling considerations**: For this dataset, explicit representation of `dcterms:Location` instances proved essential, as each location serves to tie together repeated yearly observations to the same sampling plot. Each yearly visit to a plot was modelled as a `dwc:Event`, while the nests observed during that visit were modelled as instances of `dwc:MaterialEntity`.
+
+  For each event, a corresponding `dwc:MaterialEntity` instance was created whether nests was observed or not (this issue will be discussed later). This material entity then serves as evidence for a `dwc:Occurrence` which can represent the presence or absence of lemmings at the plot during that year. However, the Darwin Core vocabulary does currently support explicit enumeration of material entities, nor does it provide a direct mechanism for asserting that no instances of a material entity were observed.
+
+  To address this limitation, this modelling approach makes use of two datatype properties provided by the DwC-DP model, which are `dwc:objectQuantity` and `dwc:objectQuantityType`. These properties were applied to material entities in order to represent the number of nests observed and allow explicitly state when zero nests were recorded at a given plot during a given year.
+
+  This modelling choice also highlights a potential need for an additional object property to relate `dwc:MaterialEntity` instances to `dwc:Event` instances when material was observed but not physically collected. A candidate property such as `dwcdp:notedDuring` could serve this purpose, with `dwcdp:collectedDuring` defined as a subproperty indicating actual collection rather than observation alone.
+
+- **Ontology subset considered**: The ontology subset used to model this dataset is relatively simple. Each yearly nest count is represented as a `dwc:Event`. Events occurring at the same sampling plot are linked to a shared `dcterms:Location` instance representing that plot. Each event is associated with a `dwc:MaterialEntity` corresponding to lemming nests, which in turn provides support for the presence or absence of a `dwc:Occurrence` of lemmings.
+
+![Ontology subset for the lemming dataset](images/subset/aulavik-small.png)
+
+- **Additions made**: An instance of `dwc:Provenance` was created to describe the dataset as a whole. This provenance entity was linked to Parks Canada, modelled as a `dcterms:Agent`, acting as the publisher of the dataset.
+
+  An online [document by Parks Canada mentioning the project](http://parkscanadahistory.com/publications/wafu/annual-report-e-2008.pdf) mentions that `all nests found were ripped apart to avoid recounting them the next year`. Nests are abandoned in spring and not reused, so they can be counted and handled without harming the animals. The entry was added as a `dwc:materialEntityRemarks` for all nests with a value of `dwc:objectQuantity` higher than `0` and related to a `dwc:Event` that had a `dwc:eventDate` of `2008` or earlier. As the document came out in 2008, no such statement can be ascertained for nests after this date.
+
+  Finally, each sampling plot was modelled as an instance of `dcterms:Location` and populated with appropriate geographic context for Aulavik National Park. As no plot-specific coordinates were provided, plots were distinguished using a simple identifier scheme of the form `Plot {number}` as the value of `dwc:locationID`.
+
+- **Difficulties encountered**: The principal modelling challenge for this dataset concerns how to represent the explicit absence of lemming nests during a yearly survey. When nests are observed, modelling is straightforward: a `dwc:MaterialEntity` instance is created, which supports a `dwc:Occurrence` of lemmings. However, confidently asserting that no nests were observed, and that this absence supports the absence of lemming occurrences, requires more careful treatment.
+
+  This is essentially related to whether biodiversity data expressed as RDF would consider an Open World Assumption (OWA) or not. Under an OWA, absence of information does not indicate information of absence. Consequently, an event for which no nests are reported could, in principle, still have nests that were simply not recorded.
+
+  To address this, the modelling explicitly includes a `dwc:MaterialEntity` with a value of `dwc:objectQuantity` equal to `0`. This asserts that the event took place and that no nest material was observed at the plot during that year. This assertion is further reinforced by creating a corresponding `dwc:Occurrence` instance with `dwc:occurrenceStatus` set to the controlled vocabulary value `absent`.
+
+  Finally, this is a lesser issue, but there are two possible species of "lemmings" in Aulavik National Park. The park contains the brown lemming (*Lemmus trimucronatus*) and the Northern collared lemming (*Dicrostonyx groenlandicus*). Seeing as these have different genera and that considering the `dwc:family` of `Cricetidae` would be too wide, these occurrences simply considered the `dwc:vernacularName` of `lemming`.
+
+  A secondary issue concerns taxonomic resolution. Two species of lemmings occur in Aulavik National Park: the brown lemming (*Lemmus trimucronatus*) and the northern collared lemming (*Dicrostonyx groenlandicus*). Because these species belong to different genera, and because assigning the family Cricetidae would be overly broad, the occurrences were modelled using the `dwc:vernacularName` of `lemming` rather than a more specific taxonomic identification.
+
+- **Graph-based representation**: The graph structure for this dataset is relatively simple. At its center is the `dwc:Provenance` instance, which links to all yearly nest counts modelled as `dwc:Event` instances. Events corresponding to the same sampling plot are connected to the shared `dcterms:Location` representing that plot.
+
+  Each event is associated with a `dwc:MaterialEntity`, which may have a `dwc:objectQuantity` value of `0`. This material entity supports a `dwc:Occurrence` of lemmings, which may in turn have a value of absent for `dwc:occurrenceStatus`.
+
+  From a purely relational perspective in the graph, material entities with a quantity of `0` are not visually distinguishable from those with positive quantities, nor are `absent` occurrences visually distinct from `present` ones. Distinguishing these cases requires inspection of the datatype properties in the serialized data.
+
+![Directed graph of the aulavik-lemming-nests dataset](images/complete/aulavik-directed-graph.png)
+
+- **Lessons learned**: Much biodiversity data implicitly treats direct observation of organisms as the basis for a `dwc:Occurrence`. However, this dataset illustrates cases where material traces, such as the example of lemming nests, form the primary evidence for inferring occurrence or absence. Being able to explicitly and confidently assert taxon absence on the basis of such material entities is a critical requirement for long-term monitoring studies.
+
+  Although the taxon considered here is lemmings, similar sampling designs and inferential challenges arise in other contexts, such as bird nest surveys and other indirect observation programmes.
+
 ### Broke-West fish
 
 - **Dataset definition**: During the the BROKE-west cruise of RV Aurora Australis from January 2nd to March 17th, 2006, fish were sampled in the CCAMLR subarea of the Antarctic coastline. Sampling was conducted using Rectangular Midwater Trawl (RMT) nets to target midwater fish. Two trawling methods were employed: target trawls directed at acoustically detected aggregations, and routine double oblique hauls from the surface down to 200 m and back. The study considers a variety of material entities derived from the caught fish, as well as media images of these entities.
