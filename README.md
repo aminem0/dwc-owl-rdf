@@ -82,9 +82,7 @@ Each dataset will therefore be described according to the following structure:
 
   To address this, the modelling explicitly includes a `dwc:MaterialEntity` with a value of `dwc:objectQuantity` equal to `0`. This asserts that the event took place and that no nest material was observed at the plot during that year. This assertion is further reinforced by creating a corresponding `dwc:Occurrence` instance with `dwc:occurrenceStatus` set to the controlled vocabulary value `absent`.
 
-  Finally, this is a lesser issue, but there are two possible species of "lemmings" in Aulavik National Park. The park contains the brown lemming (*Lemmus trimucronatus*) and the Northern collared lemming (*Dicrostonyx groenlandicus*). Seeing as these have different genera and that considering the `dwc:family` of `Cricetidae` would be too wide, these occurrences simply considered the `dwc:vernacularName` of `lemming`.
-
-  A secondary issue concerns taxonomic resolution. Two species of lemmings occur in Aulavik National Park: the brown lemming (*Lemmus trimucronatus*) and the northern collared lemming (*Dicrostonyx groenlandicus*). Because these species belong to different genera, and because assigning the family Cricetidae would be overly broad, the occurrences were modelled using the `dwc:vernacularName` of `lemming` rather than a more specific taxonomic identification.
+  A secondary issue concerns taxonomic resolution. Two species of lemmings occur in Aulavik National Park: the brown lemming (*Lemmus trimucronatus*) and the northern collared lemming (*Dicrostonyx groenlandicus*). Because these species belong to different genera, and because assigning the family Cricetidae would be overly broad, the occurrences were modelled using the `dwc:vernacularName` of `lemming`, rather than a more accurate scienitific designation.
 
 - **Graph-based representation**: The graph structure for this dataset is relatively simple. At its center is the `dwc:Provenance` instance, which links to all yearly nest counts modelled as `dwc:Event` instances. Events corresponding to the same sampling plot are connected to the shared `dcterms:Location` representing that plot.
 
