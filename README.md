@@ -325,8 +325,7 @@ Each dataset will therefore be described according to the following structure:
 
 - **Dataset definition**: As part of SELVA's Migration Ecology research program to study the ecology of migratory birds across ten departments in Colombia, a set of mist nets were set up across Colombia to study wild birds. This study would enable a better understanding of bird patterns, especially at stopover sites and for key conservation species such as the cerulean warbler (*Setophaga cerulea*) and the blackpoll warbler (*Setophaga striata*). Between 2018 and 2023, a total of 5 581 birds were recorded, banded and had measurements taken before being released into the wild.
 
-- **Dataset organization**: The dataset can be downloaded [from GBIF](https://www.gbif.org/dataset/9407c83f-8690-4965-b4fb-48e8911d9430)
-The dataset contains the the standard `occurrence.txt` table that contains information about the bird occurrences and an `extendedmeasurementorfact.txt` table that contains information about the bird traits. In addition, it also includes a `permit.txt` file that contains information about a collecting permit that allowed for the project to take place.
+- **Dataset organization**: The dataset can be downloaded [from GBIF](https://www.gbif.org/dataset/9407c83f-8690-4965-b4fb-48e8911d9430). The dataset contains the the standard `occurrence.txt` table that contains information about the bird occurrences and an `extendedmeasurementorfact.txt` table that contains information about the bird traits. In addition, it also includes a `permit.txt` file that contains information about a collecting permit that allowed for the project to take place.
 
 - **Modelling considerations**: Each ringed bird was modelled as an individual `dwc:Organism`. The ring inscription was recorded as the organism’s identifier. Individual morphological and biometrical measurements (mass, wing length, etc.) were modelled as `dwc:Assertion` instances associated with the `dwc:Organism`. Taxonomic identifications were modelled using `dwc:Identification` which also targeted the individual.
 
@@ -862,6 +861,64 @@ As a starting point, the following SPARQL query returns all body masses in the d
 
   When comparing campaigns across communities, these classes provide a clean mechanism to relate each campaign to its sampled sites and to document methodological differences.
 
+### NMNH Paleobiology Specimen Records
+
+- **Dataset definition**: The Smithsonian National Museum of Natural History houses more than 139 000 specimens spanning a wide range of taxa, including animals, plants, and protists. Although the largest proportion of observations originate from the United States, the geographic scope of the collection is global. The collection includes information about fossil collection campaigns as well as media documenting the collected fossil material. The dataset used here is a subset specifically designed to highlight the distinctive modelling challenges associated with fossil specimens.
+
+- **Dataset organization**: The entire dataset can be downloaded [from GBIF](https://www.gbif.org/dataset/c8681cc2-9d0a-4c5f-b620-5c753abfe2bc). However, the current analysis is based on a smaller subset that was published on the test IPT. There are two versions of the subset, [Test A](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a) and [Test B](https://dwcdp-ipt.gbif-test.org/resource?r=paleo-test-a).
+
+  Both versions contain a varying amount of .csv files, based on the tables in the suggested DwC-DP SQL schema, 11 for Test A 14 for Test B. The RDF conversion considered here is mostly based on the Test A version, but has made various modifications.
+
+- **Modelling considerations**: Each fossil collection event was modelled as a `dwc:Event`, with the collected fossil material being collected as a `dwc:MaterialEntity`. Instances of `dcterms:Agent` were created to represent the people and organizations carrying out the various activities surrounding studies, including but not limited to collection, identification and digitization.
+
+  Identification of the fossil material, which is modeled as a `dwc:Identification` instance, allows the inference of an occurrence of the taxon. As for the other datasets, the material entity is evidence for the occurrence. However, contrary to other datasets, the occurrence cannot be linked back to the event through the usual `dwcdp:happenedDuring` object property because the nature of the event. Doing so would bring back the occurrence into present time and location, which is not the case.
+
+  Instead, both the material entity and the inferred occurrence are framed within the same geological context using `dwcdp:happenedWithin`. In other words, the occurrence and the material are within the same geological context, while only the material entity is associated with the collection event.
+
+- **Ontology subset considered**: As it is a fossil dataset, the considered ontology is centered around the `dwc:MaterialEntity` class. Indeed, it is what is collected during events, on which indentifications are based off of and the basis of evidence for an occurrence.
+
+  The dataset also requires the consideration of the `dwc:GeologicalContext` class, which provides geological information about the collected material and eventually an occurrence, if the material is identified. Therefore, the material entity and its possibly inferred occurrence can be framed within a geological context instance through the object property `dwcdp:happenedWithin`.
+
+![Ontology subset for the museum dataset](images/subset/museum-small.png)
+
+- **Additions made**: Most media associated with the specimens were released under public-domain terms (i.e. CC0). To represent this explicitly, a `dwc:UsagePolicy` instance was created and populated with the appropriate licensing information.
+
+- **Difficulties encountered**: The principal theoretical difficulty arises from the fact that inferred occurrences cannot be linked to events, as is usually done in other examples. Linking occurrences to events would imply that the organisms existed at the time and place of collection, which is not the case for fossil material.
+
+  The single entry in the `agent-agent-role.csv` table documents the employment period of the American geologist Ellen James Moore at the United States Geological Survey. This was modelled as an instance of `dwc:AgentAgentRole`, considered a subclass of `dwc:ResourceRelationship`. As discussed previously for the BROKE-West fish dataset, this represents an example of second type of application of this pattern, where it is used to state the nature and duration of a relationship between two `dcterms:Agent` instances.
+
+  Most identifiers in the `agents.csv` file are local identifiers provided without contextual resolution. Values such as `9EA07EEC` or `2E0FD7ED` cannot be interpreted as URIs. Similarly, identifiers like `USNM:PAR:10122764` appear to be internal museum identifiers rather than globally resolvable identifiers. Consequently, unless an identifier was explicitly provided as a URI, in this case a URL, agent resources were minted within a local dummy namespace.
+
+  Several additional issues were encountered at a more technical level:
+
+  1. The identification table lacks foreign keys. In a fossil dataset, a `dwc:materialEntityID` field linking identifications to the material on which they are based. No such field is present, requiring manual lookup of material records and their identifications via the Paleobiology website.
+
+  2. In four entries of the `material-media.csv` table and one entry of the `media.csv` table, the Name-to-Thing resolver is incorrectly written as http://n2t/net, preventing proper resolution and media download. In addition, one media entry appears twice in the `material-media.csv` table.
+
+  3. Three images are listed in the `media.csv` table but have no corresponding entries in the `material-media.csv` junction table. These were added back into the dataset.
+
+  4. The media format in the `media.csv` is listed as `tiff`, which is not a valid MIME type. Although the Paleobiology Collections website indicates also `image/tiff` for all image resources, all attempts to retrieve TIFF files resulted only in JPEG images. Accordingly, these entries were changed to `image/jpeg` in the conversion.
+
+  5. Three media items lack any usage statement. While this may reflect an omission, it is notable that all three correspond to specimen label images. During modelling, the `ac:Media` instances of these resources were not related to the `dwc:UsagePolicy` instance.
+
+  6. Some agents listed in the `agents.csv` table do not appear in any other table. Examination of the Paleobiology website showed that, for many of these, they were individuals that were credited with the creation of the images. Therefore, they were related to the corresponding image through the `dcterms:creator` object property.
+
+- **Graph-based representation**: At the center of the graph is the `dcterms:Agent` instance representing the National Museum of Natural History. All fossil specimens, modelled as `dwc:MaterialEntity` instances, are connected to it as it is the institution that owns them. Three additional agent-centric clusters are particularly notable:
+
+  - An agent node around which many `dcterms:Location` instances are connected. This node represents Curt Breckenridge, credited with performing most of the georeferencing.
+
+  - An agent node around which most `ac:Media` instances are connected. This node represents Pixel Acuity, credited as the creator of the majority of specimen images.
+
+  - An agent node around which many `dwc:Identification` instances are connected. This node again represents Ellen James Moore, who carried out several identifications in this dataset.
+
+  Material entities typically cluster around both a collection event and a geological context, reflecting the fact that material is extracted during a specific event from a particular geological stratum. As defined in the modelling section, both material entities and inferred occurrences are linked to geological contexts, while only material entities are linked to collection events.
+
+![Directed graph for the nmnh dataset](images/complete/museum-directed-graph.png)
+
+- **Lessons learned**: While most biodiversity datasets follow the convention that an occurrence happens during an event, fossil datasets represent a fundamental exception. In fossil studies, material entities and inferred occurrences are framed within geological timescales that are distinct from the modern collection events through which the material was obtained.
+
+  This distinction highlights the importance of clearly separating collection, evidence and inference activities in biodiversity data models. However, when correctly done, the data can be clearly interpreted with the intended meaning.
+
 ### Ryukyu Islands reef media
 
 - **Dataset definition**: Along the coral reefs of the Ryukyu Islands (Japan), the Global Oceanographic Data Center (GODAC) collected images and videos of marine organisms using a remotely operated underwater vehicle. Organisms visible in these media were later identified, and biological occurrence records were generated based on the geographic location at which each photograph or video was captured. Identifications were based on Japanese vernacular names and, when identifications required additional clarification, relevant taxonomic literature was consulted.
@@ -1090,13 +1147,6 @@ The Insektmobilen dataset produced an extremely high number of triples, due to i
 For the AMI dataset, none of `dcterms:Agents` were human, being either instruments or AI models. However, they allowed separation of the data into well-defined groups. Indeed, graphical representation of a subset produced showed that all captures done by Luna were on the left and those by Mothra were on the right. Both AI models used for image recognition and identification are in the center of the graph.
 
 ![Directed graph of the AMI dataset](images/ami-directed-graph.png)
-
-### NMNH paleobiology
-
-The NMNH paleobiology dataset, when expressed as a (somewhat) direct RDF translation of the relational tables in the DataPackage, produced a disconnected graph. The main graph is evident, with around it several subgraphs or even single nodes. Note that this is not an issue for RDF, as these resources are still queryable. Nonetheless, some additional relating of data, such as relating `dwc:Identification` to the `dwc:MaterialEntity` on which they are based would connect the isolated subgraphs to the main graph.
-
-![Directed graph of the NMNH paleobiology dataset](images/nmnh-directed-graph.png)
-
 
 ### Joseph Rock herbarium
 
