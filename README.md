@@ -949,11 +949,9 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
   ```turtle
   <https://www.bioboum.ca/assertion/aav3ff-00248-stomach-136-rhincalanus-gigas-count> a dwc:Assertion ;
-    dwcdp:about <https://www.bioboum.ca/material/aav3ff-00248-stomach-136-rhincalanus-gigas> ;
-    dwcdp:assertionID "AAV3FF_00248_stomach_136_Rhincalanus gigas_count" ;
-    dwcdp:assertionType "individual count" ;
-    dwcdp:assertionValueNumeric 1.0 ;
-    dwcdp:materialEntityID "AAV3FF_00248_stomach_136_Rhincalanus gigas" .
+    dwc:assertionType "individual count" ;
+    dwc:assertionValueNumeric 1.0 ;
+    dwcdp:about <https://www.bioboum.ca/material/aav3ff-00248-stomach-136-rhincalanus-gigas> .
   ```
 
   Which is a `dwc:Assertion` used to define the number of individuals of the copepod *Rhincalanus gigas*. However, in this case, it is allowed and necessary. The reason being that this `dwc:Assertion` is used here to describe the individual counts of organisms in a `dwc:MaterialEntity`, in this case the stomach content of an Antactic fish *Electrona antarctica*, and not a `dwc:Occurrence` as in the *Solidobalanus* dataset.
