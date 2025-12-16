@@ -92,7 +92,7 @@ Each dataset will therefore be described according to the following structure:
 
 ![Directed graph of the aulavik-lemming-nests dataset](images/complete/aulavik-directed-graph.png)
 
-- **Lessons learned**: Much biodiversity data implicitly treats direct observation of organisms as the basis for a `dwc:Occurrence`. However, this dataset illustrates cases where material traces, such as the example of lemming nests, form the primary evidence for inferring occurrence or absence. Being able to explicitly and confidently assert taxon absence on the basis of such material entities is a critical requirement for long-term monitoring studies.
+- **Lessons learned**: A lot of biodiversity data treats with direct observation of organisms as the basis for a `dwc:Occurrence`. However, this dataset illustrates cases where material traces, such as the example of lemming nests, form the primary evidence for inferring occurrence or absence. Being able to explicitly and confidently assert taxon absence on the basis of such material entities is a critical requirement for long-term monitoring studies.
 
   Although the taxon considered here is lemmings, similar sampling designs and inferential challenges arise in other contexts, such as bird nest surveys and other indirect observation programmes.
 
@@ -861,7 +861,7 @@ As a starting point, the following SPARQL query returns all body masses in the d
 
   When comparing campaigns across communities, these classes provide a clean mechanism to relate each campaign to its sampled sites and to document methodological differences.
 
-### NMNH Paleobiology Specimen Records
+### NMNH paleobiology specimen
 
 - **Dataset definition**: The Smithsonian National Museum of Natural History houses more than 139 000 specimens spanning a wide range of taxa, including animals, plants, and protists. Although the largest proportion of observations originate from the United States, the geographic scope of the collection is global. The collection includes information about fossil collection campaigns as well as media documenting the collected fossil material. The dataset used here is a subset specifically designed to highlight the distinctive modelling challenges associated with fossil specimens.
 
