@@ -100,7 +100,7 @@ Each dataset will therefore be described according to the following structure:
 
 - **Dataset definition**: During the the BROKE-west cruise of RV Aurora Australis from January 2nd to March 17th, 2006, fish were sampled in the CCAMLR subarea of the Antarctic coastline. Sampling was conducted using Rectangular Midwater Trawl (RMT) nets to target midwater fish. Two trawling methods were employed: target trawls directed at acoustically detected aggregations, and routine double oblique hauls from the surface down to 200 m and back. The study considers a variety of material entities derived from the caught fish, as well as media images of these entities.
 
-- **Dataset organization**: The dataset, as a Darwin Core DataPackage was obtained [from the GBIF test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish). The DataPackage contains 22 .csv files, corresponding to the different tables [based on the suggested DwCDP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql).
+- **Dataset organization**: The dataset, as a Darwin Core DataPackage was obtained [from the GBIF test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=broke-west-fish). The DataPackage contains 22 .csv files, corresponding to the different tables [based on the suggested DwC-DP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql).
 
 - **Modelling considerations**: Although modelling this dataset requires a relatively high number of classes (fifteen), the overall approach is not particularly complex once the dataset structure is understood and have seen enough examples on this page. For instance, `dwc:Occurrences` take place within nested `dwc:Events`, which are conducted by `dcterms:Agents`. The relationships defined in the ontology closely mirror the structure of the dataset itself. This highlights evidenced by the thoughtful laying out of the tables and their relationships in the DwCDP model.
 
@@ -738,6 +738,83 @@ As a starting point, the following SPARQL query returns all body masses in the d
 - **Lessons learned**: Although the DNA-Derived Data extension mixes multiple types of information in a single row, its overall structure is extremely helpful when representing genetic workflows. The newer classes (`dwc:NucleotideAnalysis`, `dwc:NucleotideSequence`, and `dwc:MolecularProtocol`) enable clear distinctions between different components of the sequencing workflow.
 
   This modelling approach supports richer biodiversity knowledge graphs: occurrences can be queried based on the material they were derived from, the molecular protocol used, or the sequencing results themselves. As a result, metabarcoding datasets become more reusable, interoperable, and semantically expressive.
+
+### Lianas of Suriname
+
+- **Dataset definition**: Lianas are ecologically important woody climbers in tropical forests, contributing substantially to biodiversity, forest structure, carbon dynamics, and providing resources for wildlife and people. A research project initiated by an NGO, – The Amazon Conservation Team – Suriname, sought to document and advance understanding of liana and climbing plant diversity in the forests of the Guiana Shield region. As part of this effort, plant specimens were systematically collected to support taxonomic research and biodiversity documentation of woody climbers. The dataset also contains vernacular names of the plants in various languages, including Trió (an indigenous language) and Samaraccan (a creole language). The project culminated in the publication of `The Lianas of the Guianas: A guide to woody climbers in the tropical forests of Guyana, French Guiana, and Suriname`, an illustrated field guide describing hundreds of species and designed for both specialists and non-specialists.
+
+- **Dataset organization**: The dataset, as an occurrence core Darwin Core Archive can be downloaded [from GBIF](https://www.gbif.org/dataset/db81038b-c938-4b9a-8b30-4242ece71aad). The archive consists primarily of an occurrence.txt file, which contains information on specimen-based occurrences, including identifications and spatial data.
+
+- **Modelling considerations**: The dataset maps quite directly to the basic Darwin Core classes. For example, each specimen is a `dwc:MaterialEntity` that was collected during a `dwc:Event` and is evidence for a `dwc:Occurrence` of a taxa. the overall modelling approach is comparatively straightforward when contrasted with datasets involving multiple sampling protocols or environmental measurements.
+
+- **Ontology subset considered**: The essential Darwin Core classes required to represent specimen-based biodiversity data, `dwc:Occurrence`, `dwc:MaterialEntity`, `dwc:Identification`, `dwc:Event`, and `dcterms:Location`, were used and related using their conventional object properties.
+
+  The project itself was modelled as an instance of `dwc:Provenance`, while the published field guide was modelled as a `dcterms:BibliographicResource`. These two entities were related using the object property `dcterms:source`. The directionality of this relationship is notable and is discussed further below.
+
+  Both `dwc:Event` and `dwc:MaterialEntity` instances are linked to the same provenance using the object property `dwcdp:hasProvenance`. This implies that `dwcdp:hasProvenance` must have a single range of `dwc:Provenance`, while allowing for a sufficiently broad domain to accommodate both events and material entities.
+
+![Ontology subset for the liana dataset](images/subset/lianas-small.png)
+
+- **Additions made**: The dataset itself contains only the occurrence data. The information to fill in the `dwc:Provenance` instance was obtained from the description of the dataset.
+
+  The book is also mentionned, but not explicitely considered. The book was modeled as a `dcterms:BibliographicResource` and identified using its ISBN-13 number.
+
+  The vernacular names for each plant were parsed from the entry in the `dwc:vernacularName` field. These were used as seperate and repeated entries with appropriate language tags. As indigenous and creole languages are not widely used, ISO639-3 codes were used, being obtained [from the ISO 639-3 website](https://iso639-3.sil.org/).
+
+- **Difficulties encountered**: As mentionned previously, the information contains only information about the occurrences. To be more precise, it does contains more information about the material entities derived from these occurrences than about the occurrences themselves.
+
+  For example, though it may be tempting to let each `dwc:Occurrence` have its own associated `dwc:Event`, this might be dangerous. Indeed, it does not takes into account the possibility that multiple occurrences were noted and mulitple material entities collected in a single event. To a certain extent, this can be hypothesized, as some entries have identical event dates, geographic coordinates and verbatim localities. However, these assumptions can be dangerous without consulting the agents who collected the data.
+
+  Consequently, with the exception of the `dwc:MaterialEntity`, that used the identifier supplied in the dataset, almost all other entities (`dwc:Occurrence`, `dwc:Event`, `dwc:Identification` and `dwc:Location`) were modelled as blank nodes. This maintains semantic relationships between the entities, but leaves enough vagueness that they do not commit errors. Indeed, as blank nodes do not have identifiers, using them in this manner does not leave out the possibility that these blank nodes are the same.
+
+  As an example, a `dwc:Identification` node would have this appearance:
+
+  ```turtle
+  [] a dwc:Identification ;
+      dwc:dateIdentified "2008"^^xsd:gYear ;
+      dwc:family "Annonaceae" ;
+      dwc:identifiedBy "P. Maas" ;
+      dwc:genus "Bocageops" ;
+      dwc:scientificName "Bocageops multiflora" ;
+      dwc:scientificNameAuthorship "(Mart.) R.E.Fr." ;
+      dwc:specificEpithet "multiflora" ;
+      dwc:vernacularName "finu uwii"@srm,
+          "rasai"@tri ;
+      dwcdp:basedOn <ACT-S:Liana:BHoffman6698> ;
+      dwcdp:identificationOf _:N421cb1582d864165b818846164497a1c .
+  ```
+
+  The data can still be queries in the usual manner with SPARQL. For example the following query will request all vernacular names of any individual identified as *Bocageopsis multiflora*:
+
+  ```sparql
+  PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+
+  SELECT DISTINCT ?name
+
+  WHERE {
+        ?ident a dwc:Identification ;
+               dwc:scientificName "Bocageopsis multiflora" ;
+               dwc:vernacularName ?name .
+  }
+  ```
+
+  The `DISTINCT` keyword is required to avoid duplicated names for different individuals that received the same identification. 
+
+  Another point is the extraction of vernacular names. There was a semi-fixed pattern in the names of the plants, which usually was `{name}({language}), {name}({language})`. The extraction was done using a regular expression that split on commas, found the languages in parentheses and obtained the language tag from a Python dictionary. However, the possibility that several vernacular names would need to be taken into account. Likewise, the insertion of comments, and the possibility of using various splits such as a colon or the word `or`, complicates extraction.
+
+- **Graph-based representation**: The graph shows an aggregation of both `dwc:Event` and `dwc:MaterialEntity` instances around the `dwc:Provenance`. This was expected, as they both directly connect to it through the `dwcdp:hasProvenance` object property. Also at the center is the book, which has the provenance as its source.
+
+  Other entities, such as `dwc:Occurrence`, `dwc:Identification` and `dcterms:Location` instances form the outer layer, as they only connect to events and material entities.
+
+![Directed graph for the lianas dataset](images/complete/lianas-directed-graph.png)
+
+- **Lessons learned**: The consideration not only scientific information, but also vernacular names can be an important aspect of biodiversity datasets. The ability to add language tags in RDF means that datasets can not only for scientific information, but also cultural information.
+
+  This aspect can be seen for the species *Duguetia eximia* where one individual has the `dwc:vernacularName` entry in Trió of `"kapai jamïimë"@tri`, whereas the other has both `"kapai jamï"@tri` and `"sikiman"@tri`. The former had the additional comment of `(short variety)`, which might highlight distinctions made on other bases than species, and adds to the cultural value of the dataset.
+
+  Finally, it should be noted that the triple relating the book to the provenance is `<urn:isbn:9789460222245> dcterms:source <https://doi.org/10.15468/dokmsc> .`. Though the object property of `dcterms:source` is the same as the one considered [in the suggested DwC-DP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql), the directionality is different. Entries in the SQL schema relate the provenance to an external source from which it is derived, whereas here the book is derived from the provenance.
+  
+  This underscores the fact that biodiversity datasets are not only scientific artefacts but also cultural ones, capable of influencing and contributing to other knowledge products.
 
 ### Liloan reef monitoring
 
