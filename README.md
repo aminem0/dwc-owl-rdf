@@ -291,14 +291,14 @@ Each dataset will therefore be described according to the following structure:
 
   For `dry_mass_and_energy_content`, there should have been columns for `assertionProtocols` and `assertionProtocolID` to link it back to this protocol in the `material-assertion.csv` table. This approach was taken, by adding entries for these fields when the entry for `dwc:assertionType` was `Energy Content Dry Weight`.
 
-  For `stomach_content`, the issue approach would have been different. In this case, [based on the suggested DwCDP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql), a junction table of `material_protocol` would need to be created, joining entries from both tables. In the case of this dataset, when the entry for `materialEntityType` contained the string `stomachContent`, a relationship to the corresponding protocol was established. Note that this will also consider all minor variations (to the best of my knowledge), such as `stomachContent - mucus`, `stomachContent - st wall` or `stomachContent - facet eye`.
+  For `stomach_content`, the approach would have been different. In this case, [based on the suggested DwC-DP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql), a junction table of `material_protocol` would need to be created, joining entries from both tables. When converting this dataset to RDF, when the entry for `materialEntityType` contained the string `stomachContent`, a relationship to the corresponding protocol was established. Note that this will also consider all minor variations (which should be correct, to the best of my knowledge), such as `stomachContent - mucus`, `stomachContent - st wall` or `stomachContent - facet eye`.
 
   The same issue came up for `RMT_Target` and `RMT_Routine`, where a junction table of `survey_protocol` would need to be considered. In this case, `dwcdp:follows` was used to relate the `eco:Survey` to the `dwc:Protocol` of `RMT_Routine` whenever the value of `eco:protocolNames` corresponded to `Pre-planned routine hauls with standard double oblique tow` and to `RMT_Target` whenever the value corresponded to `target trawls on acoustically detected aggregations`.
 
   4. Though minor, it should be noted that one instance of `dwc:MaterialEntity`, whose corresponding `dwc:materialEntityID` value is `AAV3FF_00261` has the entry of `?` for `dwc:preparations`. It is a preserved whole organism of *Gymnodraco acuticeps*. The use of the question mark is not so much the issue, but does indicate that preservation methods are unknown. The actual issue is that this same material entity has a corresponding entry in the `material-assertion.txt` table with a blank cell. Blindly considering it in RDF would lead to the following node:
 
   ```turtle
-  <https://bioboum.ca/material-assertion/aav3ff-00261-presrvation> a dwc:Assertion ;
+  <https://bioboum.ca/assertion/aav3ff-00261-presrvation> a dwc:Assertion ;
       dwcdp:about <https://bioboum.ca/material-entity/aav3ff-00261> ;
       dwc:assertionID "AAV3FF_00261_presrvation" ;
       dwc:assertionType "Preservation Method" ;
