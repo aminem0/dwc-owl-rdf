@@ -506,7 +506,7 @@ Each dataset will therefore be described according to the following structure:
 
   Nucleotide sequences are not duplicated in the dataset. Consequently, a single `dwc:NucleotideSequence` may be produced by multiple `dwc:NucleotideAnalysis` instances. As a result, some sequence nodes appear centrally in the graph rather than within individual fan structures, forming dense clusters. A similar pattern is observed for `dwc:Taxon` nodes, which may be reused across multiple of identifications targeting distinct occurrences.
 
-![Directed graph for the insektmobilen dataset](images/complete/insektmobilen-p200-directed-graph.png)
+![Directed graph for the insektmobilen p-200 dataset](images/complete/insektmobilen-p200-directed-graph.png)
 
   Expanding the graph to include all drivers from `P200` to `P2015` results in an even denser central structure. As additional surveys are incorporated, new occurrences are added, but many of them reference nucleotide sequences or taxa already present in the dataset. Consequently, these shared nodes are drawn toward the center of the graph.
 
@@ -1290,12 +1290,6 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 ![Directed graph for the turtles dataset](images/complete/turtle-directed-graph.png)
 
 - **Lessons learned**: Individual movement data map naturally to the DwC-OWL ontology when each tracked animal is represented as its own instance of `dwc:Organism`. These data will become increasingly important as global networks, such as [Move-BON](https://geobon.org/move-bon/), expand efforts to standardize, aggregate, and share animal tracking information.
-
-### Insektmobilen
-
-The Insektmobilen dataset produced an extremely high number of triples, due to its identification related to barcoding. Indeed, graphical representation of a subset produced `425 018` triples. The clusterings of `dwc:Identifications` correspond to successful BLAST query matches against the BOLD database. As identifications were based on dwc:NucleotideSequences, this clustering is logical and desired from a semantic point of view.
-
-![Directed graph of the Insektmobilen dataset](images/insektmobilen-directed-graph.png)
 
 ### Joseph Rock herbarium
 
