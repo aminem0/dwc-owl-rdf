@@ -413,6 +413,109 @@ Each dataset will therefore be described according to the following structure:
 
   These questions illustrate ongoing challenges in event granularity and highlight the need for careful consideration when modelling hierarchical sampling structures in RDF.
 
+### Insektmobilen
+
+- **Dataset definition**: As part of the Insektmobilen project, through the Natural History Museum of Denmark, citizen scientists were recruited to collect insects using car nets near their homes (in Denmark) in June and July 2018. Their cars were equipped with funnel-shaped nets, which had a detachable sampling bag in which flying insects were collected and preserved in 96% ethanol. Each route was sampled once during two daily time intervals, midday (12–15 h) and evening (17–20 h), while driving at a maximum speed of 50 km/h. Samples were sent back to the research institution for analysis, allowing assessment of insect diversity. Taxonomic identifications were carried out using both morphological examination and metabarcoding based on genetic sequencing.
+
+- **Dataset organization**: The dataset, as an occurrence dataset with various extensions can be downloaded [from GBIF](https://www.gbif.org/dataset/cb8a261a-66cb-4068-809e-9e773359bb30). The conversion considered here is based on the files available from the Darwin Core DataPackage examples [GitHub repository](https://github.com/gbif/dwc-dp-examples/tree/master/survey/insektmobilen/output_data).
+
+- **Modelling considerations**: This dataset requires a relatively large number of classes to model its structure, but their use is largely straightforward. This is facilitated by the fact that the source files already adhere to the DwC-DP model.
+
+  The fact that each route was driven twice by the same drivers required special attention. This was addressed in two complementary ways. First, a parent `dwc:Event` was introduced, with the two drives represented as child events. Second, both child events were linked to the same `dcterms:Location` instance, reflecting the fact that they followed the same geographic path.
+
+  Although drivers were anonymized, information about them remains encoded in the data. Each event has a `dwc:eventID` following the pattern `P{integer}.{integer}{A|B}`, which makes it possible to determine which driver conducted a given survey. The same identifiers appear in the `dwc:samplingPerformedByID` column of the `survey.csv` file. Drivers were therefore modelled as instances of `dcterms:Agent`.
+
+- **Ontology subset considered**: Together with the BROKE-West dataset, Insektmobilen is one of the most complex datasets examined, requiring fifteen classes to adequately represent its structure. Despite this complexity, the resulting graph accurately captures the relationships present in the data.
+
+  Several features of the ontology subset deserve particular attention:
+
+  - Identifications can be based on morphological material or nucleotide sequences. As a result, the object property `dwcdp:evidenceFor` may link either a `dwc:MaterialEntity` or a `dwc:NucleotideSequence` to a `dwc:Occurrence`.
+  - Material entities can be derived from other material entities using the `dwcdp:derivedFrom` object property. These derivation chains may span several levels, for example, a purified DNA extract derived from a raw DNA extract, itself derived from a size-sorted bulk insect sample.
+
+![Ontology subset for the insektmobilen dataset](images/subset/insektmobilen-small.png)
+
+- **Additions made**: Although the dataset was already well structured according to the DwC-DP schema and included a wide range of tables, a small number of additions were introduced.
+
+  First, instances of `dwc:Agent` were explicitly modelled to represent each anonymized citizen scientist. Second, a `dwc:UsagePolicy` was added to capture the fact that all images associated with the dataset are released under a CC-BY-NC 4.0 license.
+
+  Finally, because the majority of taxa were identified using BLASTN, reference taxa were modelled as instances of `dwc:Taxon`. As can be seen in the dataset, these taxa were based on Barcode of Life Data System Barcode Index Numbers (BOLD BINs), which were used to generate resolvable URLs pointing to the corresponding resources.
+
+- **Difficulties encountered**: The `identification.csv` file contains information about all identifications performed during the project. However, identifications are made on bulk material entities rather than on individual organisms. This means that multiple identifications can be associated with the same material entity while referring to different organisms. This situation differs substantially from datasets such as Moth AMI, where multiple identifications refer to the same organism.
+
+  In the Insektmobilen dataset, identifications often target distinct organisms within the same material entity. While this is unproblematic for sequence-based identifications, it poses challenges for morphological identifications. For example, the material entity `P6.1AS` has six morphological identifications. Without additional linking information, it is impossible to determine which occurrence corresponds to which taxonomic identification (e.g. which occurrence was identified as Coleoptera versus Diptera). One could look at the occurrence nodes for a matching taxon assignment, but this requires that it receives the identification as is and this procedure can get tedious for a large number of nodes.
+
+  This highlights the need for an object property that explicitly links identifications based on entities such as `dwc:MaterialEntity` or `dwc:NucleotideSequence` to their corresponding `dwc:Occurrence`. The issue can be illustrated by the following SPARQL query:
+
+  ```sparql
+    PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+    PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+    SELECT ?occ ?sciName
+
+    WHERE {
+        ?occ a dwc:Occurrence ;
+             ^dwcdp:evidenceFor <https://www.bioboum.ca/material-entity/p6-1as> .
+
+        ?ident a dwc:Identification ;
+               dwc:scientificName ?sciName ;
+               dwcdp:basedOn <https://www.bioboum.ca/material-entity/p6-1as> .
+    }
+  ```
+
+  This query will give a cartesian product, where every combination of occurrence and identification will be made, returning 36 values. Note that some of these values will be wrong, such as the row `<https://www.bioboum.ca/occurrence/2830-morph> Diptera`, which is wrong because <https://www.bioboum.ca/occurrence/2830-morph> is identified as Coleoptera. Instead, the following query, which adds only a single line, will work:
+
+```sparql
+    PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+    PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+    SELECT ?occ ?sciName
+
+    WHERE {
+        ?occ a dwc:Occurrence ;
+             ^dwcdp:evidenceFor <https://www.bioboum.ca/material-entity/p6-1as> .
+
+        ?ident a dwc:Identification ;
+               dwc:scientificName ?sciName ;
+               dwcdp:basedOn <https://www.bioboum.ca/material-entity/p6-1as> ;
+               dwcdp:targetOccurrence ?occ .
+    }
+  ```
+
+  The query will successfully retrieve all pairs of occurrence IRIs and their associated scientific names based on the identified material entity, as:
+
+| occ                                            | sciName       |
+|------------------------------------------------|---------------|
+| <https://www.bioboum.ca/occurrence/2829-morph> | Staphylinidae |
+| <https://www.bioboum.ca/occurrence/2827-morph> | Heteroptera   |
+| <https://www.bioboum.ca/occurrence/2830-morph> | Coleoptera    |
+| <https://www.bioboum.ca/occurrence/2832-morph> | Diptera       |
+| <https://www.bioboum.ca/occurrence/2831-morph> | Apocrita      |
+| <https://www.bioboum.ca/occurrence/2828-morph> | Aphidoidea    |
+
+  To support this modelling, an explicit occurrence reference was required in the identification table. For nucleotide-based identifications, `dwc:occurrenceID` values were generated through string manipulation, as they follow the pattern `{nucleotideSequenceID}_{materialEntityID}`. For morphological identifications, occurrence identifiers were retrieved by matching entries in the `occurrence.csv` table.
+
+  Additional minor issues were also encountered. Some material entities appear in certain tables but not in others. For example, the identification with `dwc:identificationID` value of `seq_145781` refers to a material entity `P6.2AS_pure`, which is not declared in the `material.csv` table. Such entities were therefore recreated (as well as their associated links) during processing to ensure internal consistency.
+
+  Furthermore, while most tables were encoded in UTF-8, the `event.csv` file was encoded in Latin-1 and required re-encoding. 
+  
+  Finally, all media links in the archive were broken, even though the images themselves remain accessible via the GBIF dataset page and cache.
+
+- **Graph-based representation**: Due to the sheer number of interconnected nodes, the complete graph is difficult to visualize. Instead, a partial graph representing all surveys conducted by the anonymized driver `P200` is shown first. This driver completed four surveys (two pairs), one in Langvad and one in Vesløs.
+
+  Each fan-like structure originates from a driving event node, from which all associated occurrences radiate outward. Nucleotide sequences associated with each occurrence remain close to the occurrence node via the `dwcdp:evidenceFor` property. These are followed by identification nodes and, finally, the taxa used for those identifications.
+
+  Nucleotide sequences are not duplicated in the dataset. Consequently, a single `dwc:NucleotideSequence` may be produced by multiple `dwc:NucleotideAnalysis` instances. As a result, some sequence nodes appear centrally in the graph rather than within individual fan structures, forming dense clusters. A similar pattern is observed for `dwc:Taxon` nodes, which may be reused across multiple of identifications targeting distinct occurrences.
+
+![Directed graph for the insektmobilen dataset](images/complete/insektmobilen-p200-directed-graph.png)
+
+  Expanding the graph to include all drivers from `P200` to `P2015` results in an even denser central structure. As additional surveys are incorporated, new occurrences are added, but many of them reference nucleotide sequences or taxa already present in the dataset. Consequently, these shared nodes are drawn toward the center of the graph.
+
+  For example, the taxon identified by the URI https://portal.boldsystems.org/bin/BOLD:AEF2817, corresponding to the fungus gnat *Scatopsciara atomaria*, is referenced by 2 635 distinct identifications.
+
+![Directed graph for the insektmobilen dataset](images/complete/insektmobilen-directed-graph.png)
+
+- **Lessons learned**: Although such graphs are challenging to visualize in two dimensions, they remain fully queryable. This underscores the importance of a well-designed ontology. As citizen science initiatives and metabarcoding projects continue to expand in scale and complexity, projects as complex as Insektmobilen will appear more frequently. Ontological models must be expressive enough to capture their structure while remaining flexible enough to support meaningful querying and reuse.
+
 ### Jiulongfeng Nature Reserve camtrap
 
 - **Dataset definition**: Within the Jiulongfeng Nature Reserve (九龙峰自然保护区) in Huangshan, eastern China, a set of 32 camera traps was deployed to document the diversity and distribution of mammals. Cameras were installed at different locations and operated for periods ranging from 43 to 252 days (typically around 100 days). Every mammal detection was identified, and an occurrence dataset was produced.
