@@ -609,6 +609,70 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
   Blank nodes should be used sparingly because they limit interoperability, as they cannot be referred to outside of the considered graph. However, in cases like this, where the existence of an entity without a persistent ID is necessary to the correct interpretation of the data, they are appropriate and semantically meaningful.
 
+### Joseph Rock herbarium
+
+- **Dataset definition**: Founded in 1908, the Joseph F. Rock Herbarium (HAW) is the University of Hawai‘i’s official repository for botanical specimens, including the Lyon Arboretum collection. It holds around 50 000 dried plant specimens, representing Hawaiian and Pacific Island flora, with a focus on vascular plants. The collection reflects over a century of plant exploration across the Pacific basin and continues to grow through ongoing research. Its digitization efforts make the collection increasingly accessible to researchers and the public worldwide.
+
+- **Dataset organization**: The dataset, as a Darwin Core Archive, can be downloaded [from GBIF](https://www.gbif.org/dataset/96beb7d8-f762-11e1-a439-00145eb45e9a). The dataset contains various files, including an `occurrences.csv` file that records information about both the material entities and the occurrences, as well as a `multimedia.csv` file, containing information about the digitized specimen images. There is also a `measurementOrFact.csv` file with a single statement about a specimen.
+
+- **Modeling considerations**: The occurrence of the organism and the associated specimen in the herbarium were modelled separately. The occurrence was modeled as an instance of a `dwc:Occurrence` and the associated specimen in the herbarium was modelled as an instance of a `dwc:MaterialEntity`. The URI for the specimen was its URL in the Consortium of Pacific Herbaria (CPH) data portal. However, the URI for the occurrence was the URI identifying the GBIF occurrence record.
+
+  All specimen images were modelled as instances of `ac:Media`. The relationship between the image variants (good quality and thumbnail) and the original image was modelled using the `dwcdp:derivedFrom` object property. In this case, the good quality and thumbnail are derived from the original image. It would make sense to use a different object property than in cases such as the Moth AMI dataset, where cropped images are literaly part of the original image. In this case, variants are obtained through image compression, resolution reduction and possibly dimension reduction, which makes the object property `dwcdp:partOf` inappropriate.
+
+- **Ontology subset considered**: The ontology subset considered is centered around material entities and media instances. There are several differences regarding the considered object properties that distinguish it from other datasets that considered media (such as Jiulongfeng, Moth AMI, or Ryukyu):
+
+  - The media instance is media of the material entity, but only the material entity is the evidence for the occurrence. This is because the media is not a media of the occurrence itself, but rather of the material entity collected during its associated event.
+  - The identification is based on the material entity instead of the media instances.
+  - The media can have variants, such as the web variant or thumbnail variant. When present, these were considered to be `dwcdp:derivedFrom` the original image and assumed to have the same usage policy.
+
+![Ontology subset for the herbarium dataset](images/subset/herbarium-small.png)
+
+- **Additions made**: The University of Hawaiʻi at Mānoa was modelled as a `dcterms:Agent` and was considered the owner of all material entities considered in this dataset. Its entry in the Global Registry of Scientific Collections (GRSciColl) was used as an identifier.
+
+  There appear to be two usage terms considered for the images used in this dataset. The quasi-totality of images (99.91%) consider a Creative Commons Non-Commercial Share-Alike (CC-NC-SA), whereas only a small fraction consider a Creative Commons Non-Commercial (CC-NC) license. Both usage terms were added as instances of `dwc:UsagePolicy` and related to the associated media.
+
+- **Difficulties encountered**: Some entries in the `occurrences.csv` have datatype properties that would be applicable to the associated `dcterms:Location`, but none for the associated `dwc:Event`. There may be different reasons for this:
+   
+  - For some specimens, such as [this (upside-down) specimen of Vigina marina](https://pacific.symbiota.org/media/HAW_/HAW18/HAW18129_1764482501_web.jpg), event information is entirely available and its absence is due to the time needed to digitize herbarium specimens. These are somewhat easy to spot, as the entirety of the information is absent. In due time, this information will be made available in machine-readable format.
+  
+  - However, other cases are more complicated. For example, [for this specimen of Myoporum sandwicense](https://pacific.symbiota.org/media/HAW_/HAW45/HAW45309_1764577336_web.jpg), there really are no event-related properties available. Unless this information is saved somewhere else, the event node will remain an empty link between both the material entity and the occurrence node and the location node.
+
+  Therefore, empty nodes of type `dcterms:Location` that had no datatype properties were pruned and removed from the graph. Note that the triple relating its associated event to through the object property `dwcdp:spatialLocation` was also removed. This was done as, even though any `dwc:Event` should theoretically has an associated `dcterms:Location`, a location without properties is semantically useless.
+
+  The URLs of the multimedia are unusual and somewhat scattered, possibly owing to the orphaned nature of the dataset. The distribution of media instances is as follows:
+
+  - The majority (75.86%) of the images are on a Google Cloud Storage.
+  
+  - A fair amount (15.61%) is hosted on a bare Apache server. A lookup of this IP address showed that it is hosted on the University of Hawaiʻi campus.
+  
+  - Likewise, another amount (8.10%) is hosted on the iDigBio API.
+  
+  - A small amount (0.4%) are hosted on what appears to be the CPH server.
+  
+  - Finally, a small amount of only 8 images (0.01%) are hosted on a now dead Google Drive. Unless these images were backed up somewhere, they might be lost. However, it should be noted that on the specimen page, these images appear to be identical to other images. Therefore, these images could be duplicates and might be removed in the near future.
+
+  For media being served by iDigBio, the URL is usually not a direct link to the media itself, but rather a parametrized API endpoint. The URLs follows the pattern https://api.idigbio.org/v2/media/{uuid}?size={media-quality}. Responses are usually 302 redirects to the desired resources. Most requests are capable of reaching the resource, as they follow 302 status codes, but some might not, unless being specifically told to follow the `Location` response header.
+
+  Also, according to [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986), spaces must be percent-encoded in URIs. However, some of the provided URIs in the `multimedia.csv` file have spaces in them. For example, the URL of an image of *Adhatoda cydoniifolia* is given as https://storage.googleapis.com/d58fa815-ad25-4249-ac6b-569baf4cbdc1/photos/HAW_Vascular/HAW04829 (2).jpg has a space. Browsers would be able to fill in this blank, but using the value directly in an RDF serializer would break it, because it took the value literally. Slugifying all media URLs was not a viable option, as it would destroy the parameter section of the URL when it was a parametrized API call (e.g. https://api.idigbio.org/v2/media/1f52de42462b6441b349677e55c8ddaf?size=fullsize would become a non-functional https://api.idigbio.org/v2/media/1f52de42462b6441b349677e55c8ddaf-size-fullsize). This meant having to carefully programmatically percent encode spaces in every file URL that showed them.
+
+  Finally, in some cases, the original image is apparently the only variant, but is the value entered for both the `accessURI` and `goodQualityAccessURI` entries. This would cause issues for the object property `dwcdp:derivedFrom`, which would end up stating that a media instance was derived from itself. This required verification not only that entries were present for the variants, but also that they were different from the original image.
+
+- **Graph-based representation**: To visualize the data, a random subset of 5 000 occurrences. This was done so as to capture visually the variety of the dataset, as it seems to be structured into sections, either by section of the herbarium or by dataset completedness.
+
+  The center of the graph is dominated by two nodes, namely the node representing the herbarium and the node representing the CC-BY-NC-SA usage policy, which is by far the most considered usage policy in the dataset. The `ac:Media` and `dwc:MaterialEntity` instances surround it, as the herbarium is the owner of all specimens and images are media of the material entities.
+
+  Media instances derived from material entities stick together into small clusters for two reasons. The first is because they are all media of this same specimen. The second is due to the derivation relationships of the web variant and thumbnail variant from the original image.
+
+  Identifications, occurrences and events form a layer around this dense mass, as they relate to the specimen through various object properties. These nodes also stick together as they are interrelated, since identifications target occurrences that happen in events. The `dcterms:Location` nodes form an outer layer since they only relate to the events.
+
+  The other usage policy, CC-BY-NC, is considered for only a small fraction of the dataset. It is responsible for the slight overflow from the compact cluster seen on the lower-right.
+
+![Directed graph for the herbarium dataset](images/complete/herbarium-directed-graph.png)
+
+- **Lessons learned**: Beyond technical considerations, this dataset illustrates the long-term challenges of integrating legacy collections into the semantic web. Herbarium data often reflect decades, or centuries (the oldest specimen in the dataset is a), of evolving curation practices, digitization priorities, and infrastructure changes. The vast amount of information they possess makes them prime candidates for integration into RDF and linking within the semantic web.
+
+  From a modelling perspective, this reinforces the importance of explicitly distinguishing between what is known, what is unknown, and what is temporarily unavailable. RDF and DwC-DP provide sufficient expressive power to represent this uncertainty without forcing artificial completeness. In this sense, the Joseph Rock Herbarium dataset highlights both the strengths of semantic modelling for natural history collections and the need for careful, conservative interpretation when transforming digitized legacy data into interoperable graphs.
+
 ### Kalimantan odonata survey
 
 - **Dataset definition**: To characterize Odonata communities across mixed-mosaic heath (kerangas) forests, a survey was conducted in the habitats of the Mungku Baru Education Forest in Central Kalimantan, Indonesia. Fieldwork occurred between November 2019 and February 2020 as part of a broader biodiversity conservation program. The sampling design consisted of 250-m line transects surveyed across three habitat types: kerangas, low pole peat swamp, and mixed swamp forest. Each habitat contained two transects, and each transect was assessed eight times.
@@ -1290,10 +1354,6 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 ![Directed graph for the turtles dataset](images/complete/turtle-directed-graph.png)
 
 - **Lessons learned**: Individual movement data map naturally to the DwC-OWL ontology when each tracked animal is represented as its own instance of `dwc:Organism`. These data will become increasingly important as global networks, such as [Move-BON](https://geobon.org/move-bon/), expand efforts to standardize, aggregate, and share animal tracking information.
-
-### Joseph Rock herbarium
-
-Both [the GBIF endpoint](https://serv.biokic.asu.edu/pacific/portal/content/dwca/HAW_DwC-A.zip) and [the alternative identifier link](https://serv.biokic.asu.edu/pacific/portal/collections/misc/collprofiles.php?collid=1) are dead. The collection's [link on iDigBio](https://portal.idigbio.org/portal/recordsets/959c0dc4-fcf3-477e-af63-c00a005dbc0a) shows a collection with a differing amount of occurrences. Likewise, visiting [the University of Hawaiʻi at Mānoa webpage](https://manoa.hawaii.edu/herbarium/) gives no link to visit the digitized collection. Consequently, there seems to be no direct way to obtain the dataset than through the method described above.
 
 ## Value of revisiting datasets
 
