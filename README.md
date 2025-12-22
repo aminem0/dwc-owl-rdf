@@ -8,7 +8,7 @@ Given that this project is developped in conjunction with the ontology, any modi
 
 The Viridian forest survey is exceptionally good, because even though it is semantically and ecologically complex, considering several relationship between entities, it is small enough to let us view the labelled edges.
 
-![Labeled graph of the Viridian forest survey](images/complete/viridian-labeled-graph.png)
+![Labeled graph of the Viridian forest survey](images/complete/viridian-labeled-graph2.png)
 
 As can be seen, the graph reads like a book, and tells exactly the story researchers want it to say. This is crucial, as if biodiversity data is to be shared and reused among fellow researchers, first and foremost it needs to be fully understood. The set of terms in Darwin Core and the recently proposed Darwin Core DataPackage allow for the articulation of how the data are meant to be understood. To that end, the ontology in DWC-OWL allows for complex linking and eventually querying of these entities, maximizing reuse potential.
 
@@ -1354,3 +1354,98 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 ![Directed graph for the turtles dataset](images/complete/turtle-directed-graph.png)
 
 - **Lessons learned**: Individual movement data map naturally to the DwC-OWL ontology when each tracked animal is represented as its own instance of `dwc:Organism`. These data will become increasingly important as global networks, such as [Move-BON](https://geobon.org/move-bon/), expand efforts to standardize, aggregate, and share animal tracking information.
+
+### Viridian forest survey
+
+- **Dataset definition**: The dataset documents a single-event survey of flying Bug-type Pokémon in Viridian Forest. The survey took place on 17 October 2025 at one site, using a net sweep protocol with a total event duration of 15 minutes. Material entities of size-sorted bulk specimens were collected during the event, and had images taken of them and assertions made about it. These material entities also constituted the basis of almost all identifications, except for a single Pikachu, which appeared during the survey.
+
+- **Dataset organization**: The dataset, as a Darwin Core DataPackage, was obtained [from the GBIF test IPT](https://dwcdp-ipt.gbif-test.org/resource?r=viridian-forest-survey). The DataPackage contains 22 .csv files, corresponding to the different tables [based on the suggested DwC-DP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql).
+
+- **Modelling considerations**: The tables in the [DwC-DP SQL schema](https://raw.githubusercontent.com/gbif/dwc-dp-examples/refs/heads/master/gbif/dwc_dp_schema.sql) translate well into RDF.
+
+  In practice, every row can be mapped converted into an instance of the considered Darwin Core class. For example, every row in `occurrence.csv` can be modelled as an instance of `dwc:Occurrence`.
+
+  Every column can be considered either to datatype properties if it is a standalone term or, when referencing identifiers in other tables, to object properties. Object properties are required to link instances of the various considered classes.
+  
+  This direct correspondence makes the Viridian Forest survey a good example of a dataset that aligns cleanly with the DwC-DP conceptual model and requires minimal interpretive intervention during RDF conversion.
+
+- **Ontology subset considered**: Despite its small size, the Viridian forest survey dataset requires ten classes to model faithfully.
+
+  Note the fact that both `ac:Media` and `dwc:MaterialEntity` instances can be related to instances of the same class through the object property `dwcdp:isPartOf`.
+
+![Ontology subset for the viridian dataset](images/subset/viridian-small.png)
+
+- **Additions made**: No additions were made to the dataset.
+
+- **Difficulties encountered**: Almost every row in every table can be directly converted into an instance of the corresponding Darwin Core class in RDF. For example, the single row in `event.csv` represents the single event and is modelled as an instance of `dwc:Event` and the seven rows in `occurrence.csv` represent the seven occurrences and are modelled using seven distinct `dwc:Occurrence` instances.
+
+  However, one issue can come up with the conversion of the entries in the `survey-target.csv` table into RDF. The file consists of only the following three rows:
+
+| surveyTargetID | surveyID  | surveyTargetType  | surveyTargetValue | includeOrExclude | isSurveyTargetFullyReported |
+|----------------|-----------|-------------------|-------------------|------------------|-----------------------------|
+| target_01      | survey_01 | able to fly       | TRUE              | include          | TRUE                        |
+| target_01      | survey_01 | taxon             | Arthropoda        | include          | TRUE                        |
+| target_01      | survey_01 | universe          | Pokémon           | include          | TRUE                        |
+
+  Taken literally, this is equivalent to considering `include every arthropod taxon from the Pokémon universe that is capable of flight` as a survey taget for the survey.
+
+  All three rows define the same survey target, identified by the identifier value `dwc:surveyTargetID` value of `target_01`. As a first attempt, it would seem plausible to model it as a single instance of `eco:SurveyTarget` and simply map every entry of every row as a datatype property. However, doing so results in the following turtle file:
+
+  ```turtle
+  <http://bioboum.ca/survey_target/target-01> a eco:SurveyTarget ;
+      dwc:surveyID "survey_01" ;
+      dwc:surveyTargetID "target_01" ;
+      dwcdp:targetFor <http://bioboum.ca/survey/survey-01> ;
+      eco:includeOrExclude "include" ;
+      eco:isSurveyTargetFullyReported true ;
+      eco:surveyTargetType "able to fly",
+          "taxon",
+          "universe" ;
+      eco:surveyTargetValue "Arthropoda",
+          "Pokémon",
+          "true" .
+  ```
+
+  The turtle serializers orders terms alphabetically, which explains the order `able to fly`, `taxon` and `universe` for `eco:surveyTargetType` and `Arthropoda`, `Pokémon` and `true` for `eco:surveyTargetValue`. However, this means that there is no link between the values in the same row has been lost. This means that we are unable to know whether `Pokémon` is the survey target value associated with `taxon` or `universe`. To a human it may be somewhat obvious, but to a machine it will not. In addition, some cases can confuse humans as well. For example, in the BROKE-West example (the S.S. Anne of Antarctica), units and value between minimum and maximum body size become mixed up.
+  
+  The situation can become worse when some rows consider an inclusion of the combination of `dwc:surveyTargetType` and `dwc:surveyTargetValue` in a `dwc:SurveyTarget` and others consider an exclusion. This causes both controlled value terms `include` and `exclude` to appear in the entry for `eco:includeOrExclude`. The same could be said about the datatype property `eco:isSurveyTargetFullyReported`, which defines whether the counts report everything that matches the declared `dwc:SurveyTarget`.
+
+  One possible solution to this would be to model each row as a separate `eco:SurveyTarget` instance. Though this would avoid the gobbledygook mix-ups, it would be incorrect. This is because the survey target is made up of the combination of all of the components together. In the context of this dataset, `ability to fly`, `arthropod taxa` and `Pokémon universe` only make sense when taken together.
+
+  Another solution, which is considered here, would be consider every row as a separate individual instance of some component that makes up the survey target. This does not separate the individual terms of the survey target. This would require the consideration of a new object property, here termed `dwcdp:hasDefinition`. The component itself could also possibly be given a class name, of which it would be an instance. This would give the following turtle serialization:
+
+```turtle
+<http://bioboum.ca/survey-target/target-01> a eco:SurveyTarget ;
+    dwc:surveyID "survey_01" ;
+    dwc:surveyTargetID "target_01" ;
+    dwcdp:hasDefinition [ eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "able to fly" ;
+            eco:surveyTargetValue "true" ],
+        [ eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "universe" ;
+            eco:surveyTargetValue "Pokémon" ],
+        [ eco:includeOrExclude "include" ;
+            eco:isSurveyTargetFullyReported true ;
+            eco:surveyTargetType "taxon" ;
+            eco:surveyTargetValue "Arthropoda" ] ;
+    dwcdp:targetFor <http://bioboum.ca/survey/survey-01> .
+```
+  As can be seen, encapsulating every row term into a blank node correctly preserves the original meaning of `include every arthropod taxon from the Pokémon universe that is capable of flight`. Consideration of blank nodes is also useful since all these smaller components are necessary to for the survey target to function, but they do not need to be named and have URIs.
+
+- **Graph-based representation**: The directed graph shows the relationship between the entities considered in the dataset. At the center of the graph is the `dwc:Event`, around which everything is connected.
+
+  Almost all `dwc:Occurrence` instances are connected to the `eco:SurveyTarget` through the `dwcdp:satisfied` object property. This is the case for Combee (pictured), Cutiefly, Butterfree and Beedrill, which are all bug-type Pokémon who can fly and therefore meet the survey target set forth by the researchers.
+
+  Notice that Pikachu is not a bug type Pokémon and was not considered by the survey, but its occurrence was recorded. This is why it is not connected to the `eco:SurveyTarget` through the `dwcdp:satisfied` object property.
+
+![Directed graph for the viridian dataset](images/complete/viridian-labeled-graph2.png)
+
+- **Lessons learned**: This case study demonstrates that RDF can faithfully translate the information contained in the multiple .csv files of a Darwin Core DataPackage into a single, coherent graph representation. While the original dataset is distributed across 12 interrelated tables, the RDF serialization makes it possible to treat the dataset as a unified whole, enabling integrated querying, reasoning, and reuse without losing the structure imposed by the DwC-DP model.
+
+  Representing the dataset as a graph also makes the relationships between entities explicit. By following object properties and their associated semantics, it becomes possible to understand how events, occurrences, material entities, survey targets, and media relate to one another in a way that is difficult to infer from flat tables alone. This reinforces the importance of an ontology that closely follows the DwC-DP conceptual model while remaining expressive enough to capture methodological details such as survey design and inclusion criteria.
+
+  The exercise further highlights that some modelling challenges are not inherent to RDF itself, but rather emerge from ambiguities or compression in tabular representations. In particular, tables such as `survey-target.csv` may encode complex, multi-component concepts across multiple rows that are implicitly related. Making these relationships explicit in RDF requires careful modelling decisions, such as the introduction of intermediate nodes or component structures, to preserve the intended semantics for machine interpretation.
+
+  Finally, this example shows that even a relatively small and well-scoped dataset can surface important design considerations for ontology development. Addressing these issues early—by aligning closely with DwC-DP, documenting modelling assumptions, and testing conversions on real datasets—helps ensure that the resulting RDF representations are both semantically faithful and robust for downstream applications such as automated querying, validation, and integration with other biodiversity knowledge graphs.
