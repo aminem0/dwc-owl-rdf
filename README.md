@@ -1354,11 +1354,3 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 ![Directed graph for the turtles dataset](images/complete/turtle-directed-graph.png)
 
 - **Lessons learned**: Individual movement data map naturally to the DwC-OWL ontology when each tracked animal is represented as its own instance of `dwc:Organism`. These data will become increasingly important as global networks, such as [Move-BON](https://geobon.org/move-bon/), expand efforts to standardize, aggregate, and share animal tracking information.
-
-## Value of revisiting datasets
-
-The crop-flower-visit dataset was originally published as an sampling event dataset on GBIF, and was registered on September 1st 2023. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plants they visited, `dwc:Assertions` about these plants (the sex of the plant), and the nature of the relationship itself, which is a type of `dwc:OrganismInteraction`. However, the entirety of this information is provided as free-form text in the data property such as `dwc:OccurrenceRemarks`.
-
-![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
-
-Extraction of this information and updating of the dataset using DwC-DP terms and the DwC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on male Japanese persimmon trees (*Diospyros kaki*). Before, this would have required laborious regexing of the text. Consequently, the use of DwC-DP terms and the DwC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
