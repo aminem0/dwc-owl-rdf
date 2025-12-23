@@ -1482,7 +1482,7 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
   By rerunning the entire conversion of the Darwin Core Archive into RDF, the following graph can be produced:
 
-![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
+![Directed graph of the reworked crop-flower-visit dataset](images/complete/cropv2-directed-graph.png)
 
   The graph retains the same general flower-like appearance as before. However, in this case, the information contained in each flower is denser. Each flower is centered around a `dwc:Event`, which in this case, is a period during which researchers walked around the sites and captured flower-visiting insects. However, in this case, the information around each event is not simply about what insect was captured. The information now contains what insect was captured, doing what on which plant that had which assertions made about it. This is much more informative, and allows for more expressive datasets.
 
@@ -1496,12 +1496,8 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
   <urn:catalog:NIAES:Pollinators:TK17_72-occ> a dwc:Occurrence ;
-      dwc:basisOfRecord "PreservedSpecimen" ;
-      dwc:catalogNumber "TK17_72" ;
-      dwc:collectionCode "Pollinators" ;
       dwc:eventID "TKC_04" ;
       dwc:individualCount 1 ;
-      dwc:institutionCode "NIAES" ;
       dwc:occurrenceRemarks "Captured on Pyrus pyrifolia (Burm.f.) Nakai (Hermaphrodite) | Sample lost or damaged: FALSE" ;
       dwc:occurrenceStatus "present" ;
       dwc:scientificName "Andrena" ;
