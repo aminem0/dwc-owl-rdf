@@ -1456,3 +1456,147 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
   The exercise further highlights that some modelling challenges are not inherent to RDF itself, but rather emerge from ambiguities or compression in tabular representations. In particular, tables such as `survey-target.csv` may encode complex, multi-component concepts across multiple rows that are implicitly related. Making these relationships explicit in RDF requires careful modelling decisions, such as the introduction of intermediate nodes or component structures, to preserve the intended semantics for machine interpretation.
 
   Finally, this example shows that even a relatively small and well-scoped dataset can surface important design considerations for ontology development. Addressing these issues early—by aligning closely with DwC-DP, documenting modelling assumptions, and testing conversions on real datasets—helps ensure that the resulting RDF representations are both semantically faithful and robust for downstream applications such as automated querying, validation, and integration with other biodiversity knowledge graphs.
+
+## Value of revisiting datasets
+
+### More expressive datasets
+
+  The crop-flower-visit dataset was originally published as a sampling event dataset on GBIF. As it is, the dataset has information not only on insect visitors, but also on several other entities, such as the plant organisms visited, assertions about the visited plants and the nature of the relationship itself, which is a type of `dwc:OrganismInteraction`. However, the entirety of this information is provided as entries for the data property `dwc:occurrenceRemarks` or in the EML file within the Darwin Core Archive.
+
+  For example, an entry of `dwc:occurrenceRemarks` such as `Captured on Pyrus pyrifolia (Burm.f.) Nakai (Hermaphrodite) | Sample lost or damaged: FALSE` indicates that the insect was caught not just on any plant, but on an Asian pear plant. Furthermore, this plant was sexed as being hermaphrodite. In addition, the associated EML file mentions that `[t]he surveys were conducted on the days of full bloom` of the trees, indicating their reproductive condition. This information can be extracted and added to the graph as additional information.
+
+  Considering both pieces information leads to the more complex ontology subset:
+
+  ![Directed graph of the reworked crop-flower-visit dataset](images/subset/cropv2-small2.png)
+
+  The ontology subset is now more complex, as it requires the consideration of `dwc:OrganismInteraction` and of various kinds of `dwc:Assertion` instances. For ease of visualization, two `dwc:Occurrence` instances have been shown. The one representing the insect is related to the organism interaction node through the object property `dwcdp:interactionBy` and the occurrence representing the plant is related to the organism interaction node through the object property `dwcdp:interactionWith`.
+
+  Also note that assertions can be either about the plant organism (i.e. sex and reproductive condition) or about the interaction itself.
+
+  To view this more clearly, consider the graph created when only the data associated with event `TKC_04`, which happened in an experimental farm in the province of Ibaraki (茨城県). In this case, only two insects were captured, with one identified to the genus *Andrena*, and the other to *Lasioglossum*. Both were caught after visiting the flowers of hermaphrodite Asian pear trees (*Pyrus pyrifolia*). The two graphs below show the graph without and with the additional extracted data:
+
+![Directed graph of the reworked crop-flower-visit dataset](images/complete/cropv1-flower-directed-graph.png)
+![Directed graph of the reworked crop-flower-visit dataset](images/complete/cropv2-flower-directed-graph.png)
+
+  As can be seen, the general outline of the graph did not change. All that was done was add more information to the graph. Note that there may be cases where considering additional information can change the outline of the graph.
+
+  By rerunning the entire conversion of the Darwin Core Archive into RDF, the following graph can be produced:
+
+![Directed graph of the reworked crop-flower-visit dataset](images/cropv2-directed-graph.png)
+
+  The graph retains the same general flower-like appearance as before. However, in this case, the information contained in each flower is denser. Each flower is centered around a `dwc:Event`, which in this case, is a period during which researchers walked around the sites and captured flower-visiting insects. However, in this case, the information around each event is not simply about what insect was captured. The information now contains what insect was captured, doing what on which plant that had which assertions made about it. This is much more informative, and allows for more expressive datasets.
+
+  The interaction component of the data could be expressed in the following turtle snippet:
+
+  ```turtle
+  @prefix dcterms: <http://purl.org/dc/terms/> .
+  @prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+  @prefix dwcdp: <http://rs.tdwg.org/dwcdp/terms/> .
+  @prefix eco: <http://rs.tdwg.org/eco/terms/> .
+  @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ> a dwc:Occurrence ;
+      dwc:basisOfRecord "PreservedSpecimen" ;
+      dwc:catalogNumber "TK17_72" ;
+      dwc:collectionCode "Pollinators" ;
+      dwc:eventID "TKC_04" ;
+      dwc:individualCount 1 ;
+      dwc:institutionCode "NIAES" ;
+      dwc:occurrenceRemarks "Captured on Pyrus pyrifolia (Burm.f.) Nakai (Hermaphrodite) | Sample lost or damaged: FALSE" ;
+      dwc:occurrenceStatus "present" ;
+      dwc:scientificName "Andrena" ;
+      dwcdp:happenedDuring <https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd/event/TKC_04> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant> a dwc:Occurrence ;
+      dwc:scientificName "Pyrus pyrifolia" ;
+      dwcdp:happenedDuring <https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd/event/TKC_04> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant-ass-1> a dwc:Assertion ;
+      dwc:assertionType "reproductive condition" ;
+      dwc:assertionTypeIRI dwc:reproductiveCondition ;
+      dwc:assertionValue "flowering stage" ;
+      dwc:assertionValueIRI <http://purl.obolibrary.org/obo/PO_0007616> ;
+      dwcdp:about <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant-ass-2> a dwc:Assertion ;
+      dwc:assertionType "sex" ;
+      dwc:assertionTypeIRI dwc:sex ;
+      dwc:assertionValue "hermaphrodite" ;
+      dwc:assertionValueIRI <http://purl.obolibrary.org/obo/PATO_0001340> ;
+      dwcdp:about <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ-org-interaction> a dwc:OrganismInteraction ;
+      dwc:organismInteractionDescription "insects observed entering flowers from the front or accessing reproductive organs" ;
+      dwc:organismInteractionType "visited flower of" ;
+      dwc:relatedOrganismPart "flower" ;
+      dwc:subjectOrganismPart "body" ;
+      dwcdp:happenedDuring <https://www.gbif.org/dataset/bbaca86c-f703-41fc-800a-fa301c0661fd/event/TKC_04> ;
+      dwcdp:interactionBy <urn:catalog:NIAES:Pollinators:TK17_72-occ> ;
+      dwcdp:interactionWith <urn:catalog:NIAES:Pollinators:TK17_72-occ-plant> .
+
+  <urn:catalog:NIAES:Pollinators:TK17_72-occ-org-interaction-assert> a dwc:Assertion ;
+      dwc:assertionMadeDate "2017-04-25" ;
+      dwc:assertionValue "visits flowers of" ;
+      dwc:assertionValueIRI <http://purl.obolibrary.org/obo/RO_0002622> ;
+      dwcdp:about <urn:catalog:NIAES:Pollinators:TK17_72-occ-org-interaction> .
+  ```
+
+  Extraction of additional information and updating of the dataset using DwC-DP terms and the DwC-OWL ontology leads to a richer and more expressive dataset. It also leads itself more readily to analyses and querying. For example, a SPARQL query can now target occurrences of insects but only on Asian pear trees. Before, this would have required laborious regexing of the text. Consequently, the use of DwC-DP terms and the DwC-OWL ontology should not be seen only as something that should be used from now on, but also as something that researchers can use to make previously published datasets more expressive.
+
+### Smarter querying
+
+Furthermore, suppose we had the crop dataset stored in a triplestore and that it was exposed through a SPARQL endpoint. The following SPARQL query allows for extraction of the desired data (i.e. occurrences of insects but only on male Japanese persimmon trees):
+
+```sparql
+PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+SELECT ?occPol ?occSci
+
+WHERE {
+  ?occPol a dwc:Occurrence ;
+          dwc:scientificName ?occSci ;
+          dwc:occurrenceRemarks ?occRem .
+
+  FILTER regex(?occRem, "Diospyros kaki")
+  FILTER regex(?occRem, "\\bmale\\b", "i")
+}
+```
+
+The query is a simple SPARQL query with regex-based pattern searching of the `dwc:occurrenceRemarks` entry. However, given that the study occurred in Japan, it is entirely possible that the researchers could have chosen the term `雄株` instead of `male` to define the sex of the flower. In this case, regexing becomes much more complicated for additional reasons. For example, would the researcher consider the kanji `雄株` or hiragana `おかぶ`? Would he consider the literal term `male` or a symbol such as `♂`?
+
+Note that this notion is quite real, as the previously seen Colombia bird ring dataset provided bird sex as the Spanish `Macho` and `Hembra`. Likewise, the capitalization of `Macho` means that unless come form of string manipulation is employed, `Macho` will not be considered the same as `macho`.
+
+On the other hand, the SPARQL query that is based on the DWC-OWL ontology is a bit more verbose, but is much more concise and consists of:
+
+```sparql
+PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
+PREFIX dwcdp: <http://rs.tdwg.org/dwcdp/terms/>
+
+SELECT ?occPol ?occSci
+
+WHERE {
+  ?occPol a dwc:Occurrence ;
+          dwc:scientificName ?occSci .
+  
+  ?inter a dwc:OrganismInteraction ;
+         dwcdp:interactionBy ?occPol ;
+         dwcdp:interactionWith ?occPlant .
+  
+  ?occPlant a dwc:Occurrence ;
+            dwc:scientificName "Diospyros kaki" .
+  
+  ?plantAss a dwc:Assertion ;
+            dwcdp:about ?occPlant ;
+            dwc:assertionValueIRI <http://purl.obolibrary.org/obo/PATO_0000384> .
+}
+```
+
+Where http://purl.obolibrary.org/obo/PATO_0000384 is an IRI that corresponds to a specific PATO (Phenotype And Trait Ontology) term, in this case `male`. Consideration of a persistent IRI safegards against the previously mentionned issues, as it is a language-independent way to refer to the same concept.
+
+Furthermore, the regex-based query has a glaring problem that can potentially slip by unnoticed. The pattern `\\bmale\\b` will blindly look for the word `male`, anywhere in the occurrence remarks. Therefore, the WRONG results can be returned for reasons other than what the researcher intended. For example, the following `dwc:occurrenceRemarks` will still be a match: `occurrence of a male Lasioglossus on a female flower of Diospyros kaki`. This is because the regex just blindly looks for the string `male` in the string, regardless of whether it relates to the pollinator or to the plant. In contrast, the semantically-aware query will successfully retrieve the desired data, because it has connected the data in a semantically meaningful way.
+
+Simple text-based querying introduces both false positives (matching the right word in the wrong semantic context) and false negatives (missing valid records due to language, script, or capitalization differences). Therefore, more efforts should be made towards making biodiversity data machine-readable and in an ontologically sound manner.
+
+This illustrates an important point: while RDF provides a flexible framework for representing data, it alone is not enough to significantly advance data-sharing and reuse. Only when RDF is backed with a robust ontological foundation can it enable truly meaningful, semantically precise data-sharing and reuse.
+
