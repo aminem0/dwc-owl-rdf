@@ -1374,6 +1374,8 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
   Every column can be considered either to datatype properties if it is a standalone term or, when referencing identifiers in other tables, to object properties. Object properties are required to link instances of the various considered classes.
   
+  Note that this logic does not apply to junction tables, such as the `material-media.csv` table. In this case, the table is used to model many-to-many relationships between entities. For example, a media instance could be an image of several material entities, or a material entity could have several images taken of it. In this case, every row represents an object property statement that relates the two related entities.
+
   This direct correspondence makes the Viridian Forest survey a good example of a dataset that aligns cleanly with the DwC-DP conceptual model and requires minimal interpretive intervention during RDF conversion.
 
 - **Ontology subset considered**: Despite its small size, the Viridian forest survey dataset requires ten classes to model faithfully.
