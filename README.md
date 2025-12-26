@@ -732,7 +732,7 @@ One could create a dummy URL such as http://bioboum.ca/media/hnk-c0czq-jlf06-ima
 
 - **Dataset organization**: The dataset, as a Darwin Core Archive can be downloaded [from GBIF](https://www.gbif.org/dataset/9e54a9c3-98cf-438d-bdf2-89358b647ffa). The archive contains an `occurrence.txt` table that records each rodent capture and an `extendedmeasurementorfact.txt` table that records each measurement taken on the individual rodents.
 
-- **Ontology subset considered**: The relationships between classes in this dataset are relatively straightforward. Every captured rodent is modelled as a dwc:Occurrence of a `dwc:Organism`. Every measurement was modelled as a `dwc:Assertion` targeting the individual rodent.
+- **Ontology subset considered**: The relationships between classes in this dataset are relatively straightforward. Every captured rodent is modelled as a dwc:Occurrence of a `dwc:Organism`. Every measurement was modelled as a `dwc:Assertion` targeting the individual rodent's occurrence.
 
   Each rodent capture represents a separate `dwc:Event`. However, as traps were left at the same spot, all captures in that trap share the same `dcterms:Location`.
 
@@ -790,10 +790,7 @@ As a starting point, the following SPARQL query returns all body masses in the d
            dwc:assertionTypeIRI <http://purl.obolibrary.org/obo/OBA_VT0001259> ;
            dwc:assertionUnitIRI <http://purl.obolibrary.org/obo/UO_0000021> ;
            dwc:assertionValueNumeric ?bodyMass ;
-           dwcdp:about ?org .
-
-    ?org a dwc:Organism ;
-         ^dwcdp:occurrenceOf ?occ .
+           dwcdp:about ?occ .
 
     ?occ a dwc:Occurrence ;
          dwcdp:happenedDuring ?event .
@@ -803,8 +800,6 @@ As a starting point, the following SPARQL query returns all body masses in the d
            dwc:scientificName ?species .
   }
 ```
-
-  Note the addition of the `dwcdp:` prefix to reference object properties and the use of the inverse property `^dwcdp:occurrenceOf` to navigate from a `dwc:Organism` to its `dwc:Occurrence`. Equivalent formulations include moving the `dwcdp:occurrenceOf` triple into the occurrence block (and keeping the original directionality as `?occ dwcdp:occurrenceOf ?org`) or defining explicit inverse properties (as in Darwin-SW, which uses the pair `dsw:occurrenceOf` and `dsw:hasOccurrence`). Each option has merits and requires further discussion.
 
   Finally, the SPARQL query can be expanded to compute the average body mass and the number of observations within each treatment group. This requires aggregate functions `AVG()` and `COUNT()` to get the values, as well `GROUP BY` and `ORDER BY` to arrange results. The following query computes these values for the two most frequent species, Kaiser's rock rat (*Aethomys kaiseri*) and the African pygmy mouse (*Mus minutoides*):
 
@@ -820,10 +815,7 @@ As a starting point, the following SPARQL query returns all body masses in the d
            dwc:assertionTypeIRI <http://purl.obolibrary.org/obo/OBA_VT0001259> ;
            dwc:assertionUnitIRI <http://purl.obolibrary.org/obo/UO_0000021> ;
            dwc:assertionValueNumeric ?bodyMass ;
-           dwcdp:about ?org .
-
-    ?org a dwc:Organism ;
-         ^dwcdp:occurrenceOf ?occ .
+           dwcdp:about ?occ .
 
     VALUES ?species { "Aethomys kaiseri" "Mus minutoides" }
 
