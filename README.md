@@ -866,7 +866,7 @@ As a starting point, the following SPARQL query returns all body masses in the d
 
 - **Dataset definition**: During the 2nd International Indian Ocean Expedition (May–June 2019), aboard the RV Investigator, juvenile lanternfish (*Hygophum*) were sampled in the Indian Ocean. Their gut contents and gut lining were analyzed using DNA metabarcoding following several protocols. The protocols compared included the Nanopore MinION and Illumina MiSeq sequencing platforms, as well as three primer sets: COI "Leray", 18S rRNA V4 "Zhan", and COI "Lobo". The resulting nucleotide sequences were submitted to BLASTN (blastn 2.12.0, e-value cutoff = 0.001, percent identity ≥ 80%) to evaluate the diet of these fishes.
 
-- **Dataset organization**: The dataset, published as a Darwin Core Archive, was downloaded [from OBIS](https://obis.org/dataset/5d206e57-370c-453f-a882-b54d517294e7). It contains the standard `occurrence.txt` table, as well as a `dnaderiveddata.txt` table describing molecular analyses and their resulting sequences, and a `resourcerelationship.txt` table describing relationships between each fish and its gut content.
+- **Dataset organization**: The dataset, published as a Darwin Core Archive, can be downloaded [from OBIS](https://obis.org/dataset/5d206e57-370c-453f-a882-b54d517294e7) or [from GBIF](https://www.gbif.org/dataset/1cbf68cb-c977-4898-9caf-10006332a87b). It contains the standard `occurrence.txt` table, as well as a `dnaderiveddata.txt` table describing molecular analyses and their resulting sequences, and a `resourcerelationship.txt` table describing relationships between each fish and its gut content.
 
 - **Modelling considerations**: The content of the `resourcerelationship.txt` table is relatively straightforward: each fish occurrence is related to gut-content occurrences using a predator–prey relationship, expressed as `hasEaten`. This can be modelled as an instance of `dwc:OrganismRelationship` (a subclass of `dwc:ResourceRelationship`) connecting the fish occurrence and the prey occurrence. The specific nature of the relationship is described using an instance of `dwc:OrganismRelationshipAssertion`.
 
@@ -1261,13 +1261,13 @@ Values in the `dwc:occurrenceID` column follow the form `urn:catalog:JAMSTEC:god
 
   As suggested in the Darwin Core DataPackage explanations, `pairwise interactions must be used to represent multi-organism interactions`. As an exercise, this approach was taken, leading to the graph below:
 
-![Directed graph for the lanternfish dataset](images/subset/complex-1.png)
+![Directed graph for the complex interaction 1](images/subset/complex-1.png)
 
   In this case, the barnacle is on the bottom-left, the goose barnacle in the middle and the sea-fan on the top left. The pairs of `dwc:OrganismInteractions` describe successively the relationship between the three individuals.
 
   This exercise can be extended to consider a graph-based representation of the statement `In the scientific paper, it was mentionned that, during a dredge off Hillsea Point on the 8th of November 1995, 1 individual of Solidobalanus fallax was on Scalpellum growing on Eunicella`. This produced the graph below:
 
-![Directed graph for the lanternfish dataset](images/subset/complex-2.png)
+![Directed graph for the complex interaction 2](images/subset/complex-2.png)
 
   Using, whenever possible real URLs, the statement can be encoded and shared as the following turtle file:
 
